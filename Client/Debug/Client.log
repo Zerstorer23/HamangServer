@@ -1,0 +1,3 @@
+﻿  0506multiThreadClient.cpp
+C:\Users\Lex\Desktop\Cpp\0506multiThreadServer\0506multiThreadClient\0506multiThreadClient.cpp(90,9): warning C4101: 'strlen' :참조되지 않은 지역 변수입니다.
+  Client.vcxproj -> C:\Users\Lex\source\repos\Multithread1\Debug\Client.exe

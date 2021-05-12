@@ -44,6 +44,13 @@ public:
 		ReleaseMutex(hMutex);
 	}
 
+	void BroadcastMessage(int & sourceActorNumber, LPPER_IO_DATA receivedIO, DWORD & bytesReceived) {
+		for (auto entry : playerHash) {
+			Player* targetPlayer = entry.second;
+			if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
+			targetPlayer->Send(receivedIO, bytesReceived);
+		}
+	}
 	//void BroadcastMessageOthers(int whisperer, char* message, int amount) {
 	//	for (pair<int,Player*> entry : playerHash){
 	//		if (entry.second->actorNumber == whisperer) continue;

@@ -14,8 +14,6 @@ class IOCP_Server
 	WSADATA wsaData;
 	HANDLE hCompletionPort;
 	SYSTEM_INFO sysInfo;
-	LPPER_IO_DATA ioInfo;
-	LPPER_HANDLE_DATA handleInfo;
 	SOCKET serverSocket;
 	SOCKADDR_IN serverAddress;
 
@@ -26,8 +24,6 @@ public:
 		sysInfo = {};
 		serverSocket = {};
 		hCompletionPort = {};
-		handleInfo = {};
-		ioInfo = {};
 		serverAddress = {};
 	}
 	~IOCP_Server() {
@@ -47,6 +43,26 @@ public:
 		closesocket(serverSocket);
 		WSACleanup();
 	}
+	LPPER_IO_DATA CreateBufferData(int bufferSize, int rwMode) {
+		LPPER_IO_DATA newIO = new PER_IO_DATA();
+		memset(&(newIO->overlapped), 0, sizeof(OVERLAPPED));
+		newIO->wsaBuf.len = bufferSize;
+		newIO->wsaBuf.buf = newIO->buffer;
+		newIO->rwMode = rwMode; // IOCP 신호에는 입출력 구분이 없어서 직접 넣어야함
+		return newIO;
+	}
+	static LPPER_IO_DATA CloneBufferData(LPPER_IO_DATA original, int bufferSize, int rwMode) {
+		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
+		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
+		memcpy(cloneIO->buffer, original->buffer, bufferSize);
+		cloneIO->wsaBuf.len = bufferSize;
+		cloneIO->wsaBuf.buf = original->buffer;
+		cloneIO->rwMode = rwMode;
+		return cloneIO;
+	}
+
+	
+
 	void BindAddress(SOCKADDR_IN& servAddr, const char* ip_addr, const  char* port) {
 		memset(&servAddr, 0, sizeof(servAddr));
 		servAddr.sin_family = AF_INET;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Values.h"
-
+#include "IOCP_Server.h"
 class Player
 {
 
@@ -21,13 +21,12 @@ public:
 
 	}
 
-	//void Send(char* message, int len) {
-	//	printf("sent: %s %d\n", message, strlen(message));
-	//	printf("expected send bytes: %d\n", len);
-
-	//	//send(clientSocket, (char*)&len, sizeof(len), 0);
-	////	send(clientSocket, message, len, 0);
-	//}
+	void Send(LPPER_IO_DATA receivedIO, DWORD & bytesReceived) {
+		LPPER_IO_DATA cloneIO = IOCP_Server::CloneBufferData(receivedIO, bytesReceived, WRITE);
+		SOCKET targetSocket = handleInfo->clientSocket;
+		cout << "Send to Actor number " << actorNumber << endl;
+		WSASend(targetSocket, &(cloneIO->wsaBuf), 1, NULL, 0, &(cloneIO->overlapped), NULL);
+	}
 
 
 };

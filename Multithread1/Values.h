@@ -10,8 +10,27 @@
 #include <string.h>
 
 #define BUFFER 1024
+#define READ 3
+#define WRITE 5
+
 #define MAX_CLIENT 20
+#define	SAFE_DELETE(p)	if(p)	{ delete p; p = nullptr; }
 using namespace std;
+
+class Player;
+typedef struct {
+	SOCKET clientSocket;
+	SOCKADDR_IN clientAddress;
+	Player* player;
+}PER_HANDLE_DATA, * LPPER_HANDLE_DATA;
+
+typedef struct {
+	OVERLAPPED overlapped;//구조체의 주소는 첫변수 overlap의주소
+	WSABUF wsaBuf;
+	char buffer[BUFFER];
+	int rwMode;
+
+}PER_IO_DATA, * LPPER_IO_DATA;
 
 /*
 1. 모든 cpp는 메인 헤더

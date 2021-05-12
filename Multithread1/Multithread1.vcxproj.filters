@@ -33,6 +33,9 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="IOCP_Server.cpp">
+      <Filter>02 Server</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Values.h">
@@ -45,6 +48,9 @@
       <Filter>01 PlayerManager</Filter>
     </ClInclude>
     <ClInclude Include="ServerExample.h">
+      <Filter>02 Server</Filter>
+    </ClInclude>
+    <ClInclude Include="IOCP_Server.h">
       <Filter>02 Server</Filter>
     </ClInclude>
   </ItemGroup>

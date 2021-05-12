@@ -1,15 +1,12 @@
-#include "ServerExample.h"
+#include "IOCP_Server.h"
 
 int main()
 {
 
-    char ip_addr[] = "127.0.0.1";
-    char mainPort[] = "9000";
-    ServerExample myServer;
-    if (myServer.InitialiseServer(ip_addr, mainPort) == -1) {
-        cout << "Init error " << endl;
-    };
+    string ip = "127.0.0.1";
+    string port = "9000";
+    IOCP_Server myServer;
+    myServer.InitialiseServer(ip, port);
     myServer.OpenServer();
-
-
+    myServer.CloseServer();
 }

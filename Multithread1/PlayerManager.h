@@ -4,7 +4,7 @@ class PlayerManager
 {
 
 public:
-	unordered_map<int, Player*>  playerHash;
+	unordered_map<int, Player*> playerHash;
 	int totalConnected;
 	HANDLE hMutex;
 
@@ -15,19 +15,18 @@ public:
 	}
 	~PlayerManager() {
 		for (pair<int, Player*> entry : playerHash) {
-			delete entry.second;
-			entry.second = nullptr;
+			SAFE_DELETE(entry.second)
 		}
-		
 	}
 	
-	Player* CreatePlayer(SOCKET& clientSocket) {
+	Player* CreatePlayer(LPPER_HANDLE_DATA handleInfo) {
 		WaitForSingleObject(hMutex, INFINITE);
 		Player* player = new Player();
-		player->clientSocket = clientSocket;
+		player->handleInfo = handleInfo;
 		player->actorNumber = totalConnected;
 		player->isHost = (totalConnected == 0);
 		playerHash.insert(make_pair(player->actorNumber, player));
+		handleInfo->player = player;
 		totalConnected++;
 		ReleaseMutex(hMutex);
 		return player;
@@ -39,18 +38,18 @@ public:
 			cout << "Missing actor" << endl;
 			return;
 		}
-		closesocket(playerHash[actorNumber]->clientSocket);
+		closesocket(playerHash[actorNumber]->handleInfo->clientSocket);
 		playerHash.erase(actorNumber);
 		cout << "Removed actor " << actorNumber<<endl;
 		ReleaseMutex(hMutex);
 	}
 
-	void BroadcastMessageOthers(int whisperer, char* message, int amount) {
-		for (pair<int,Player*> entry : playerHash){
-			if (entry.second->actorNumber == whisperer) continue;
-			entry.second->Send(message, amount);
-		}
-	}
+	//void BroadcastMessageOthers(int whisperer, char* message, int amount) {
+	//	for (pair<int,Player*> entry : playerHash){
+	//		if (entry.second->actorNumber == whisperer) continue;
+	//		entry.second->Send(message, amount);
+	//	}
+	//}
 
 
 };

@@ -1,6 +1,7 @@
 #include "IOCP_Server.h"
 #include "PlayerManager.h"
 PlayerManager IOCP_Server::playerManager;
+unordered_map<string, string> IOCP_Server::serverCustomProperty;
 void IOCP_Server::OpenServer()
 {
     //1. CP오브젝트 생성. 마지막인자 0 -> 코어의 수만큼 cp오브젝트에 스레드를 할당
@@ -39,10 +40,8 @@ void IOCP_Server::OpenServer()
         //handleInfo는 정보 매개변수 ->getQueuedCopletionStatus의 세번쨰 인자로 전달됨
 
         ///->이 단계에서 소켓 리스트를 만들 필요가 있음
-        char ipname[128];
-        inet_ntop(AF_INET, (void*)&clientAddress.sin_addr, (PSTR)ipname, sizeof(ipname));
-        printf("Connected client IP : %s \n", ipname);
-        Player* player = playerManager.CreatePlayer(handleInfo);
+        HandlePlayerJoin(handleInfo,clientAddress);
+
       
         //IO Read이벤트 생성후 구독
         LPPER_IO_DATA ioInfo = CreateBufferData(BUFFER,READ);
@@ -51,6 +50,44 @@ void IOCP_Server::OpenServer()
     }
     return;
 }
+void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress) {
+    char ipname[128];
+    inet_ntop(AF_INET, (void*)&clientAddress.sin_addr, (PSTR)ipname, sizeof(ipname));
+    printf("Connected client IP : %s \n", ipname);
+    Player* player = playerManager.CreatePlayer(handleInfo);
+    playerManager.PrintPlayers();
+
+    //1. Send All player information with name and hash
+            /*
+         0 Sent Actor Num = -1
+         1 MessageInfo = Callback
+         3. sub info = join local
+         4 RoomInfo Begin==
+           4 - NumRoomHash
+                1 - key (int)
+                2 - value (string)
+         5. Player Begin===
+            5. NumPlayer
+            6. LocalPlayer
+               6. id, ismaster, numParam , key..value...
+
+         */
+         //params = [int]numPlayers(local Included) , LocalPlayerInfo , players[...
+         //Player Info = actorID, isMaster, customprop[num prop]
+    string message =to_string(0).append(to_string(-1)).append(NET_DELIM).append(to_string((int)MessageInfo::ServerCallbacks)).append(NET_DELIM).append(to_string((int)LexCallback::LocalPlayerJoined));
+    cout << message << endl;
+    //RoomInfo start
+    message = message.append(EncodeServerToNetwork());
+    cout << message << endl;
+    //Players
+    message = message.append(playerManager.EncodePlayersToNetwork(player));
+    DWORD bytesSend = message.length() +1;
+    cout << "Sent bytes " << bytesSend << endl;
+    LPPER_IO_DATA sendIO = CreateMessage(message, bytesSend);
+    cout << "IO Created" << endl;
+    player->Send(sendIO);
+}
+
 
 unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     HANDLE hCompletionPort = (HANDLE)pCompletionPort;
@@ -92,25 +129,8 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             for (unsigned int i = 0; i < tokens.size(); i++) {
                 cout << tokens[i] << endl;
             }
-            if (tokens.size() >= 2) {
-                //3. 0 1 <- 1번째 코드 int로 읽고 aoi
-                int messageInfo = stoi(tokens[1]);
-                if (messageInfo == MSG_REQUEST) {
-                    //4. request면 2번째 코드 읽고 switch
-                    int messageCode = stoi(tokens[2]);
-
-                }
-                else if (messageInfo == MSG_HASH) {
-                    //SetHash면 서버 Hash도 업데이트 필요
-                    //actorNum, SetHash [int]roomOrPlayer [string]Key [object]value
-                }
-                else {
-                    //그외에는 BroadCast
-                    playerManager.BroadcastMessage(sourcePlayer->actorNumber, receivedIO, bytesReceived);
-                }
-            
-            }
-            else {
+            bool broadcastMessage =  HandleMessage(tokens);
+            if (broadcastMessage) {
                 playerManager.BroadcastMessage(sourcePlayer->actorNumber, receivedIO, bytesReceived);
             }
        
@@ -133,5 +153,49 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
         }
     }
     return 0;
+
+}
+
+void IOCP_Server::Handle_PropertyRequest(vector<string>& tokens)
+{
+    //SetHash면 서버 Hash도 업데이트 필요
+    //actorNum, SetHash [int]roomOrPlayer [string]Key [object]value
+    int target = stoi(tokens[2]);
+    string key = tokens[3];
+    string value = tokens[4];
+    if (target == 0) {
+        IOCP_Server::SetProperty(key,value);
+        IOCP_Server::PrintProperties();
+    }
+    else {
+        playerManager.playerHash[target]->SetProperty(key, value);
+        playerManager.playerHash[target]->PrintProperties();
+    }
+}
+
+bool IOCP_Server::HandleMessage(vector<string>& tokens)
+{
+    if (tokens.size() >= 2) {
+        //3. 0 1 <- 1번째 코드 int로 읽고 aoi
+        MessageInfo messageInfo = (MessageInfo)stoi(tokens[1]);
+        if (messageInfo == MessageInfo::ServerRequest) {
+            //4. request면 2번째 코드 읽고 switch
+            int messageCode = stoi(tokens[2]);
+            return false;
+        }
+        else if (messageInfo == MessageInfo::SetHash) {
+            cout << "Handle hash : " << (int)messageInfo << endl;
+            Handle_PropertyRequest(tokens);
+            return true;
+        }
+        else {
+            //그외에는 BroadCast
+            return true;
+        }
+    }
+    else {
+        return true;
+    }
+
 
 }

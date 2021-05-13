@@ -5,12 +5,12 @@ class PlayerManager
 
 public:
 	unordered_map<int, Player*> playerHash;
-	int totalConnected;
+	int nextActorNumber;
 	HANDLE hMutex;
 
 public:
 	PlayerManager() {
-		totalConnected = 0;
+		nextActorNumber = 1;
 		hMutex = CreateMutex(NULL, FALSE, NULL);
 	}
 	~PlayerManager() {
@@ -23,11 +23,11 @@ public:
 		WaitForSingleObject(hMutex, INFINITE);
 		Player* player = new Player();
 		player->handleInfo = handleInfo;
-		player->actorNumber = totalConnected;
-		player->isHost = (totalConnected == 0);
+		player->actorNumber = nextActorNumber;
+		player->isMasterClient = (playerHash.size() == 0);
 		playerHash.insert(make_pair(player->actorNumber, player));
 		handleInfo->player = player;
-		totalConnected++;
+		nextActorNumber++;
 		ReleaseMutex(hMutex);
 		return player;
 	}
@@ -51,6 +51,28 @@ public:
 			targetPlayer->Send(receivedIO, bytesReceived);
 		}
 	}
+	void BroadcastMessageAll(LPPER_IO_DATA receivedIO, DWORD& bytesReceived) {
+		for (auto entry : playerHash) {
+			entry.second->Send(receivedIO, bytesReceived);
+		}
+	}
+	void PrintPlayers() {
+		cout << "Connected players :" << playerHash.size() << endl;
+		for (auto entry : playerHash) {
+			cout << entry.second->actorNumber << endl;
+		}
+	}
+	string EncodePlayersToNetwork(Player * joinedPlayer) {
+		string message = NET_DELIM;
+		message = message.append(to_string(playerHash.size())).append(joinedPlayer->EncodeToNetwork());
+		for (auto entry : playerHash) {
+			if (entry.first == joinedPlayer->actorNumber) continue;
+			message = message.append(entry.second->EncodeToNetwork());
+		}
+		cout << "PLayer code: " << message << endl;
+		return message;	
+	}
+
 	//void BroadcastMessageOthers(int whisperer, char* message, int amount) {
 	//	for (pair<int,Player*> entry : playerHash){
 	//		if (entry.second->actorNumber == whisperer) continue;

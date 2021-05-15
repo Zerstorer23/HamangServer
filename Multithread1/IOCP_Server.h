@@ -2,6 +2,7 @@
 
 #include "Values.h"
 
+class NetworkMessage;
 class PlayerManager;
 class IOCP_Server
 {
@@ -54,12 +55,12 @@ public:
 		newIO->rwMode = rwMode; // IOCP 신호에는 입출력 구분이 없어서 직접 넣어야함
 		return newIO;
 	}
-	static LPPER_IO_DATA CloneBufferData(LPPER_IO_DATA original, int bufferSize, int rwMode) {
+	static LPPER_IO_DATA CloneBufferData(char* original, int bufferSize, int rwMode) {
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
-		memcpy(cloneIO->buffer, original->buffer, bufferSize);
+		memcpy(cloneIO->buffer, original, bufferSize);//
 		cloneIO->wsaBuf.len = bufferSize;
-		cloneIO->wsaBuf.buf = original->buffer;
+		cloneIO->wsaBuf.buf = cloneIO->buffer;//
 		cloneIO->rwMode = rwMode;
 		return cloneIO;
 	}
@@ -84,9 +85,10 @@ public:
 	}
 
 	static unsigned WINAPI EchoThreadMain(LPVOID CompletionPortIO);
-	static bool HandleMessage(vector<string>& tokens);
-	static void Handle_PropertyRequest(vector<string>& tokens);
-
+	static void HandleMessage(NetworkMessage& netMessage);
+	static void Handle_PropertyRequest(NetworkMessage& netMessage);
+	static void Handle_BroadcastString(NetworkMessage& netMessage);
+	static void Append(string& s, string& broadcastString);
 	string EncodeServerToNetwork() {
 		string message = NET_DELIM;
 		message = message.append(to_string(serverCustomProperty.size()));

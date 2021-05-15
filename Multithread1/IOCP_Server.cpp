@@ -1,5 +1,6 @@
 #include "IOCP_Server.h"
 #include "PlayerManager.h"
+#include "NetworkMessage.h"
 PlayerManager IOCP_Server::playerManager;
 unordered_map<string, string> IOCP_Server::serverCustomProperty;
 void IOCP_Server::OpenServer()
@@ -19,8 +20,11 @@ void IOCP_Server::OpenServer()
     res = listen(serverSocket, 5);
     assert(res != SOCKET_ERROR);
 
+   //1. 뭉쳐 보내기
+    //2.
 
-    //
+    //receive buffer 1024 /600 , 600 ->첫 600만받고
+    //buffer 1024
     LPPER_HANDLE_DATA handleInfo = nullptr;
     int receivedBytes, flags = 0;
     while (true) {
@@ -88,7 +92,18 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     player->Send(sendIO);
 }
 
+/*
+ 1024 < - 600 / 400 200
+ 
+ SETSOCKET... 1mb
 
+ //a 1 2 3
+ //  1[2..1..3] 2 3
+ 
+ 
+ 랜카드 버퍼  == 
+ 
+ */
 unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     HANDLE hCompletionPort = (HANDLE)pCompletionPort;
 
@@ -102,7 +117,8 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     while (true) {
         GetQueuedCompletionStatus(hCompletionPort, &bytesReceived, (PULONG_PTR)&handleInfo, (LPOVERLAPPED*)&receivedIO, INFINITE);
         //WSARecv가 들어오면 
-
+        //40 30 // 40 10더
+        //Shared pointer
         Player * sourcePlayer = handleInfo->player;
 
         clientSocket = handleInfo->clientSocket;
@@ -125,15 +141,17 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
 
             cout << "Cleansed Message :" << message << endl;
             //2. split하고
-            vector<string> tokens = Split(message, '#');
-            for (unsigned int i = 0; i < tokens.size(); i++) {
-                cout << tokens[i] << endl;
+            NetworkMessage netMessage;
+            netMessage.Split(message, '#');
+            HandleMessage(netMessage);
+            if (netMessage.HasMessageToBroadcast()) {
+                char sendBuffer[BUFFER];
+                string msg = netMessage.Build();
+               // playerManager.BroadcastMessage(sourcePlayer->actorNumber, sendBuffer, bytesReceived);
+                playerManager.BroadcastMessageAll((char *)msg.c_str(), bytesReceived);
             }
-            bool broadcastMessage =  HandleMessage(tokens);
-            if (broadcastMessage) {
-                playerManager.BroadcastMessage(sourcePlayer->actorNumber, receivedIO, bytesReceived);
-            }
-       
+           
+            
 
      
 
@@ -156,15 +174,55 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
 
 }
 
-void IOCP_Server::Handle_PropertyRequest(vector<string>& tokens)
+
+
+void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
+{
+    while (netMessage.HasNext()) {
+        int beginPointOfAMessage = netMessage.iterator;
+        //1. Check signature
+        string signature = netMessage.GetNext();
+        bool isMyPacket =(   signature.compare(SIGNATURE) == 0);
+        if (!isMyPacket) continue;
+
+        //2. 메세지 길이 읽기
+        int lengthOfMessages = stoi(netMessage.GetNext());
+            //3. 메세지 발언자 읽기
+        int senderID = stoi(netMessage.GetNext());
+        //4. 메세지 타입 읽기
+        MessageInfo messageInfo = (MessageInfo)stoi(netMessage.GetNext());
+        int endPointOfAMessage = beginPointOfAMessage + lengthOfMessages;
+        cout << signature << "Is my packet from "<<beginPointOfAMessage<<" to "<<endPointOfAMessage << endl;
+        if (messageInfo == MessageInfo::ServerRequest) {
+            //4. request면 2번째 코드 읽고 switch
+            int messageCode = stoi(netMessage.GetNext());
+        }
+        else if (messageInfo == MessageInfo::SetHash) {
+            cout << "Handle hash : " << (int)messageInfo << endl;
+            Handle_PropertyRequest(netMessage);
+            netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);
+        }
+        else {
+            //0 /1 2 3 4/ 5 6
+            netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
+            netMessage.iterator = endPointOfAMessage;
+        }
+    }
+   
+
+
+}
+
+void IOCP_Server::Handle_PropertyRequest(NetworkMessage& netMessage)
 {
     //SetHash면 서버 Hash도 업데이트 필요
     //actorNum, SetHash [int]roomOrPlayer [string]Key [object]value
-    int target = stoi(tokens[2]);
-    string key = tokens[3];
-    string value = tokens[4];
+    int target = stoi(netMessage.GetNext());
+    cout << "Set hash on " << endl;
+    string key = netMessage.GetNext();
+    string value = netMessage.GetNext();
     if (target == 0) {
-        IOCP_Server::SetProperty(key,value);
+        IOCP_Server::SetProperty(key, value);
         IOCP_Server::PrintProperties();
     }
     else {
@@ -173,29 +231,3 @@ void IOCP_Server::Handle_PropertyRequest(vector<string>& tokens)
     }
 }
 
-bool IOCP_Server::HandleMessage(vector<string>& tokens)
-{
-    if (tokens.size() >= 2) {
-        //3. 0 1 <- 1번째 코드 int로 읽고 aoi
-        MessageInfo messageInfo = (MessageInfo)stoi(tokens[1]);
-        if (messageInfo == MessageInfo::ServerRequest) {
-            //4. request면 2번째 코드 읽고 switch
-            int messageCode = stoi(tokens[2]);
-            return false;
-        }
-        else if (messageInfo == MessageInfo::SetHash) {
-            cout << "Handle hash : " << (int)messageInfo << endl;
-            Handle_PropertyRequest(tokens);
-            return true;
-        }
-        else {
-            //그외에는 BroadCast
-            return true;
-        }
-    }
-    else {
-        return true;
-    }
-
-
-}

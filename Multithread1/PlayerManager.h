@@ -44,16 +44,16 @@ public:
 		ReleaseMutex(hMutex);
 	}
 
-	void BroadcastMessage(int & sourceActorNumber, LPPER_IO_DATA receivedIO, DWORD & bytesReceived) {
+	void BroadcastMessage(int & sourceActorNumber, char * sendBuffer, DWORD & bytesReceived) {
 		for (auto entry : playerHash) {
 			Player* targetPlayer = entry.second;
 			if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
-			targetPlayer->Send(receivedIO, bytesReceived);
+			targetPlayer->Send(sendBuffer, bytesReceived);
 		}
 	}
-	void BroadcastMessageAll(LPPER_IO_DATA receivedIO, DWORD& bytesReceived) {
+	void BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived) {
 		for (auto entry : playerHash) {
-			entry.second->Send(receivedIO, bytesReceived);
+			entry.second->Send(sendBuffer, bytesReceived);
 		}
 	}
 	void PrintPlayers() {

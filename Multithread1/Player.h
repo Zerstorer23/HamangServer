@@ -31,10 +31,10 @@ public:
 			cout << "Client"<<actorNumber <<" |\t" << entry.first << "|\t" << entry.second << endl;
 		}
 	}
-	void Send(LPPER_IO_DATA receivedIO, DWORD & bytesReceived) {
-		LPPER_IO_DATA cloneIO = IOCP_Server::CloneBufferData(receivedIO, bytesReceived, WRITE);
+	void Send(char* sendBuffer, DWORD & bytesReceived) {
+		LPPER_IO_DATA cloneIO = IOCP_Server::CloneBufferData(sendBuffer, bytesReceived, WRITE);
 		SOCKET targetSocket = handleInfo->clientSocket;
-		cout << "Send to Actor number " << actorNumber << endl;
+		cout <<sendBuffer<< "Send to Actor number " << actorNumber << endl;
 		WSASend(targetSocket, &(cloneIO->wsaBuf), 1, NULL, 0, &(cloneIO->overlapped), NULL);
 	}
 	void Send(LPPER_IO_DATA sendIO) {

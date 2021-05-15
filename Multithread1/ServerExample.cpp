@@ -65,6 +65,7 @@ PlayerManager ServerExample::playerManager;
             cout << " recv fail " << endl;
             break;
         }
+        //[1 --- 0]
         receivedBytes = 0;
         while (receivedBytes < expectedBytes) {
             int received = recv(clientSocket, message, expectedBytes, 0);

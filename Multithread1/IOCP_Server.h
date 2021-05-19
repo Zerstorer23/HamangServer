@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Values.h"
-
-class NetworkMessage;
+#include "NetworkMessage.h"
 class PlayerManager;
 class IOCP_Server
 {
@@ -50,6 +49,7 @@ public:
 	LPPER_IO_DATA CreateBufferData(int bufferSize, int rwMode) {
 		LPPER_IO_DATA newIO = new PER_IO_DATA();
 		memset(&(newIO->overlapped), 0, sizeof(OVERLAPPED));
+		newIO->buffer = new char[BUFFER];
 		newIO->wsaBuf.len = bufferSize;
 		newIO->wsaBuf.buf = newIO->buffer;
 		newIO->rwMode = rwMode; // IOCP 신호에는 입출력 구분이 없어서 직접 넣어야함
@@ -58,13 +58,23 @@ public:
 	static LPPER_IO_DATA CloneBufferData(char* original, int bufferSize, int rwMode) {
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
+		cloneIO->buffer = new char[BUFFER];
 		memcpy(cloneIO->buffer, original, bufferSize);//
 		cloneIO->wsaBuf.len = bufferSize;
 		cloneIO->wsaBuf.buf = cloneIO->buffer;//
 		cloneIO->rwMode = rwMode;
 		return cloneIO;
 	}
-
+	LPPER_IO_DATA CreateMessage(string& message, DWORD bytesSend) {
+		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
+		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
+		cloneIO->buffer = new char[BUFFER];
+		memcpy(cloneIO->buffer, message.c_str(), bytesSend);
+		cloneIO->wsaBuf.len = bytesSend;
+		cloneIO->wsaBuf.buf = cloneIO->buffer;
+		cloneIO->rwMode = WRITE;
+		return cloneIO;
+	}
 	void HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress);
 	
 
@@ -89,6 +99,7 @@ public:
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
+
 	string EncodeServerToNetwork() {
 		string message = NET_DELIM;
 		message = message.append(to_string(serverCustomProperty.size()));
@@ -98,16 +109,31 @@ public:
 		cout << "Room: " << message << endl;
 		return message;
 	}
-	LPPER_IO_DATA CreateMessage(string& message, DWORD bytesSend) {
-		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
-		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
-		memcpy(cloneIO->buffer, message.c_str(), bytesSend);
-		cloneIO->wsaBuf.len = bytesSend;
-		cloneIO->wsaBuf.buf = cloneIO->buffer;
-		cloneIO->rwMode = WRITE;
-		return cloneIO;
+	void EncodeServerToNetwork(NetworkMessage & netMessage) {
+		netMessage.Append(to_string(serverCustomProperty.size()));
+		for (auto entry : serverCustomProperty) {
+			netMessage.Append(entry.first);
+			netMessage.Append(entry.second);
+		}
 	}
+	void SetSocketSize(SOCKET& socket) {
+		int bufSize = BUFFER;
+		socklen_t len = sizeof(bufSize);
+		setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, sizeof(bufSize));
+		setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&bufSize, sizeof(bufSize));
+		int sendBuf, recvBuf;
+		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&sendBuf, &len);
+		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&recvBuf, &len);
+		printf("receive buffer size: %d\n", recvBuf);
+		printf("send buffer size: %d\n", sendBuf);
+	}
+	void SetSocketReusable(SOCKET& socket) {
+		int option;
+		socklen_t optlen = sizeof(option);
+		option = TRUE;
+		setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&option, optlen);
 
+	}
 	void OpenServer();
 };
 

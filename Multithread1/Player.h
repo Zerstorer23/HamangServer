@@ -1,6 +1,7 @@
 #pragma once
 #include "Values.h"
 #include "IOCP_Server.h"
+#include "NetworkMessage.h"
 class Player
 {
 
@@ -42,24 +43,7 @@ public:
 		cout << "Send to Actor number " << actorNumber << endl;
 		WSASend(targetSocket, &(sendIO->wsaBuf), 1, NULL, 0, &(sendIO->overlapped), NULL);
 	}
-	string EncodeToNetwork() {
-	/*
-	        this.isLocal = isLocal;
-        CustomProperties = new Dictionary<PlayerProperty, string>();
-        this.actorID = Int32.Parse(stringQueue.Dequeue());
-        this.IsMasterClient = Boolean.Parse(stringQueue.Dequeue());
-        int numParam = Int32.Parse(stringQueue.Dequeue());
-        int i = 0;
-        Debug.Log(string.Format("Received Player {1}, isMaster{2}", actorID, IsMasterClient));
-        while (i < numParam) {
-            PlayerProperty key =(PlayerProperty) Int32.Parse(stringQueue.Dequeue());
-            string value = stringQueue.Dequeue();
-            Debug.Log("Key " + key + " / " + value);
-            CustomProperties.Add(key, value);
-            i++;
-        }
-        NickName = CustomProperties[PlayerProperty.NickName];
-	*/
+	/*string EncodeToNetwork() {
 		string message = NET_DELIM;
 		message = message.append(to_string(actorNumber)).append(NET_DELIM)
 			.append(to_string(isMasterClient)).append(NET_DELIM)
@@ -69,6 +53,15 @@ public:
 			message = message.append(NET_DELIM).append(entry.first).append(NET_DELIM).append(entry.second);
 		}
 		return message;
+	}*/
+	void EncodeToNetwork(NetworkMessage & netMessage) {
+		netMessage.Append(to_string(actorNumber));
+		netMessage.Append(to_string(isMasterClient));
+		netMessage.Append(to_string(CustomProperty.size()));
+		for (auto entry : CustomProperty) {
+			netMessage.Append(entry.first);
+			netMessage.Append(entry.second);
+		}
 	}
 };
 

@@ -2,6 +2,7 @@
 
 
 #define NET_DELIM "#"
+#define NET_SIG "LEX"
 
 enum class MessageInfo {
     ServerRequest, RPC, SyncVar, Chat, Instantiate, Destroy, SetHash, ServerCallbacks

@@ -14,6 +14,8 @@ void IOCP_Server::OpenServer()
         cout << "Crated thread " << i << endl;
     }
     serverSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+    SetSocketSize(serverSocket);
+    SetSocketReusable(serverSocket);
     BindAddress(serverAddress, ipAddress.c_str(), portNumber.c_str());
     int res = bind(serverSocket, (sockaddr*)&serverAddress, sizeof(serverAddress));
     assert(res != SOCKET_ERROR);
@@ -33,6 +35,7 @@ void IOCP_Server::OpenServer()
         int addressLength = sizeof(clientAddress);
         //클라이언트 소켓 생성
         clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddress, &addressLength);
+        SetSocketSize(clientSocket);
         handleInfo = new PER_HANDLE_DATA();
         handleInfo->clientSocket = clientSocket;
         memcpy(&(handleInfo->clientAddress), &clientAddress, addressLength);
@@ -63,6 +66,8 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
 
     //1. Send All player information with name and hash
             /*
+         1. Signature
+         2. Length
          0 Sent Actor Num = -1
          1 MessageInfo = Callback
          3. sub info = join local
@@ -78,13 +83,24 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
          */
          //params = [int]numPlayers(local Included) , LocalPlayerInfo , players[...
          //Player Info = actorID, isMaster, customprop[num prop]
-    string message =to_string(0).append(to_string(-1)).append(NET_DELIM).append(to_string((int)MessageInfo::ServerCallbacks)).append(NET_DELIM).append(to_string((int)LexCallback::LocalPlayerJoined));
+    NetworkMessage netMessage;
+    netMessage.Append("-1");
+    netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    netMessage.Append(to_string((int)LexCallback::LocalPlayerJoined));
+   /* string message =
+        to_string(0).append(NET_SIG).append(NET_DELIM)
+        .append(to_string(-1)).append(NET_DELIM)
+        .append(to_string((int)MessageInfo::ServerCallbacks)).append(NET_DELIM)
+        .append(to_string((int)LexCallback::LocalPlayerJoined));
     cout << message << endl;
     //RoomInfo start
     message = message.append(EncodeServerToNetwork());
-    cout << message << endl;
+    cout << message << endl;*/
+    EncodeServerToNetwork(netMessage);
     //Players
-    message = message.append(playerManager.EncodePlayersToNetwork(player));
+    playerManager.EncodePlayersToNetwork(player, netMessage);
+    //message = message.append(playerManager.EncodePlayersToNetwork(player));
+    string message = netMessage.BuildNewSignedMessage();
     DWORD bytesSend = message.length() +1;
     cout << "Sent bytes " << bytesSend << endl;
     LPPER_IO_DATA sendIO = CreateMessage(message, bytesSend);
@@ -126,6 +142,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             if (bytesReceived == 0) {//종료
                 cout << "Disconnect Client" << endl;
                 SAFE_DELETE(handleInfo)
+                SAFE_DELETE(receivedIO->buffer)
                 SAFE_DELETE(receivedIO)
                 playerManager.RemovePlayer(sourcePlayer->actorNumber);
                 //Callback": Disconnect 송신
@@ -145,8 +162,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             netMessage.Split(message, '#');
             HandleMessage(netMessage);
             if (netMessage.HasMessageToBroadcast()) {
-                char sendBuffer[BUFFER];
-                string msg = netMessage.Build();
+                string msg = netMessage.BuildCopiedMessage();
                // playerManager.BroadcastMessage(sourcePlayer->actorNumber, sendBuffer, bytesReceived);
                 playerManager.BroadcastMessageAll((char *)msg.c_str(), bytesReceived);
             }
@@ -167,6 +183,8 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
         }
         else {
             cout << "Message sent" << endl;
+            cout << " " << endl;
+            SAFE_DELETE(receivedIO->buffer)
             SAFE_DELETE(receivedIO)
         }
     }
@@ -182,7 +200,7 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
         int beginPointOfAMessage = netMessage.iterator;
         //1. Check signature
         string signature = netMessage.GetNext();
-        bool isMyPacket =(   signature.compare(SIGNATURE) == 0);
+        bool isMyPacket =(   signature.compare(NET_SIG) == 0);
         if (!isMyPacket) continue;
 
         //2. 메세지 길이 읽기

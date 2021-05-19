@@ -13,7 +13,6 @@
 #define BUFFER 1024*32
 #define READ 3
 #define WRITE 5
-#define SIGNATURE "LEX"
 
 #define MAX_CLIENT 20
 #define	SAFE_DELETE(p)	if(p)	{ delete p; p = nullptr; }
@@ -29,9 +28,11 @@ typedef struct {
 typedef struct {
 	OVERLAPPED overlapped;//구조체의 주소는 첫변수 overlap의주소
 	WSABUF wsaBuf;//WSAREcv
-	char buffer[BUFFER]; //=malloc() new char[](BUFFER)
+	//char buffer[BUFFER]; //=malloc() new char[](BUFFER)
+	char* buffer; //= nullptr;// = new char[BUFFER];
 	int rwMode;
 }PER_IO_DATA, * LPPER_IO_DATA;
+
 
 /*
 1. 모든 cpp는 메인 헤더

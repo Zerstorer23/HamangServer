@@ -1,8 +1,4 @@
 ﻿  IOCP_Server.cpp
-D:\VSProjects\HamangServer\Multithread1\IOCP_Server.cpp(148,22): warning C4101: 'sendBuffer' :참조되지 않은 지역 변수입니다.
-  main.cpp
-  NetworkMessage.cpp
-  Player.cpp
   PlayerManager.cpp
   코드를 생성하고 있습니다...
   Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe

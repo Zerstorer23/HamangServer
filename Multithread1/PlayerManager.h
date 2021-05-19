@@ -1,5 +1,6 @@
 #pragma once
 #include "Player.h"
+#include "NetworkMessage.h"
 class PlayerManager
 {
 
@@ -62,7 +63,7 @@ public:
 			cout << entry.second->actorNumber << endl;
 		}
 	}
-	string EncodePlayersToNetwork(Player * joinedPlayer) {
+	/*string EncodePlayersToNetwork(Player * joinedPlayer) {
 		string message = NET_DELIM;
 		message = message.append(to_string(playerHash.size())).append(joinedPlayer->EncodeToNetwork());
 		for (auto entry : playerHash) {
@@ -71,8 +72,15 @@ public:
 		}
 		cout << "PLayer code: " << message << endl;
 		return message;	
+	}*/
+	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage & netMessage) {
+		netMessage.Append(to_string(playerHash.size()));
+		joinedPlayer->EncodeToNetwork(netMessage);
+		for (auto entry : playerHash) {
+			if (entry.first == joinedPlayer->actorNumber) continue;
+			entry.second->EncodeToNetwork(netMessage);
+		}
 	}
-
 	//void BroadcastMessageOthers(int whisperer, char* message, int amount) {
 	//	for (pair<int,Player*> entry : playerHash){
 	//		if (entry.second->actorNumber == whisperer) continue;

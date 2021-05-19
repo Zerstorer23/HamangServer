@@ -6,10 +6,12 @@ public:
 	string broadcastMessage;
 	unsigned int iterator;
 	vector<string> tokens;
+	int count;
 	
 	NetworkMessage() {
 		iterator = 0;
 		tokens = {};
+		count = 0;
 	}
 	~NetworkMessage() {
 	
@@ -30,6 +32,7 @@ public:
 			current = str.find(delim, previous);
 		}
 		x.push_back(str.substr(previous, current - previous));
+		count = x.size();
 		tokens =  x;
 	}
 	string GetNext() {
@@ -38,11 +41,13 @@ public:
 	string PeekPrev() {
 		return tokens[iterator - 1];
 	}
-	//void Append(string s)
-	//{
-	//	broadcastMessage.append(NET_DELIM);
-	//	broadcastMessage.append(s);
-	//}
+	
+	void Append(string s)
+	{
+		broadcastMessage.append(NET_DELIM);
+		broadcastMessage.append(s);
+		count++;
+	}
 	//void AppendPrevious()
 	//{
 	//	broadcastMessage.append(NET_DELIM);
@@ -52,6 +57,7 @@ public:
 		for (int i = begin; i < end; i++) {
 			broadcastMessage.append(NET_DELIM);
 			broadcastMessage.append(tokens[i]);
+			count++;
 		}
 		cout << "Saved string: " << broadcastMessage << endl;
 	}
@@ -62,8 +68,11 @@ public:
 	bool HasMessageToBroadcast() {
 		return !broadcastMessage.empty();
 	}
-	string Build() {
+	string BuildCopiedMessage() {
 		return broadcastMessage;//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
+	}
+	string BuildNewSignedMessage() {
+		return "#LEX#"+ to_string(count+2)+ broadcastMessage;//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
 	}
 };
 

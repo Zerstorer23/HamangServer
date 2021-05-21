@@ -1,4 +1,9 @@
-﻿  IOCP_Server.cpp
-  PlayerManager.cpp
+﻿  Player.cpp
+  main.cpp
   코드를 생성하고 있습니다...
-  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe
+BufferedMessages.obj : error LNK2019: "public: __thiscall IOCP_Server::IOCP_Server(void)" (??0IOCP_Server@@QAE@XZ)"public: static class IOCP_Server * __cdecl IOCP_Server::GetInst(void)" (?GetInst@IOCP_Server@@SAPAV1@XZ) 함수에서 참조되는 확인할 수 없는 외부 기호
+IOCP_Server.obj : error LNK2001: 확인할 수 없는 외부 기호 "public: __thiscall IOCP_Server::IOCP_Server(void)" (??0IOCP_Server@@QAE@XZ)
+main.obj : error LNK2001: 확인할 수 없는 외부 기호 "public: __thiscall IOCP_Server::IOCP_Server(void)" (??0IOCP_Server@@QAE@XZ)
+Player.obj : error LNK2001: 확인할 수 없는 외부 기호 "public: __thiscall IOCP_Server::IOCP_Server(void)" (??0IOCP_Server@@QAE@XZ)
+main.obj : error LNK2019: "public: __thiscall IOCP_Server::~IOCP_Server(void)" (??1IOCP_Server@@QAE@XZ)"public: void * __thiscall IOCP_Server::`scalar deleting destructor'(unsigned int)" (??_GIOCP_Server@@QAEPAXI@Z) 함수에서 참조되는 확인할 수 없는 외부 기호
+D:\VSProjects\HamangServer\Debug\Multithread1.exe : fatal error LNK1120: 2개의 확인할 수 없는 외부 참조입니다.

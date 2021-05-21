@@ -10,13 +10,42 @@
 #include <string>
 #include "SharedEnums.h"
 #include <queue>
+#include <chrono>
+#include <ctime>
+#include <thread>
+
+using namespace std;
+using chrono::duration_cast;
+using chrono::milliseconds;
+using chrono::seconds;
+using chrono::system_clock;
 #define BUFFER 1024*32
 #define READ 3
 #define WRITE 5
 
 #define MAX_CLIENT 20
 #define	SAFE_DELETE(p)	if(p)	{ delete p; p = nullptr; }
-using namespace std;
+#define SAFE_DELETE_ARRAY(p) if(p) {delete[] p; p=NULL;}
+
+#define DECLARE_SINGLE(Type)	\
+	private:\
+		static Type* instance; \
+	public:\
+		static Type* GetInst(){\
+			if(!instance)\
+			instance = new Type;\
+			return instance;\
+			}\
+		static void DestroyInst() {	\
+			SAFE_DELETE(instance);	\
+		}							\
+	private:					\
+		Type();					\
+		~Type()				
+
+#define DEFINITION_SINGLE(Type) Type* Type::instance = NULL;
+#define GET_SINGLE(Type) Type::GetInst()
+#define DESTROY_SINGLE(Type) Type::DestroyInst()
 
 class Player;
 typedef struct {
@@ -32,7 +61,11 @@ typedef struct {
 	char* buffer; //= nullptr;// = new char[BUFFER];
 	int rwMode;
 }PER_IO_DATA, * LPPER_IO_DATA;
-
+typedef struct {
+	int playerActorNr;
+	int viewID;
+	string message;
+}RPC, * PRPC;
 
 /*
 1. 모든 cpp는 메인 헤더

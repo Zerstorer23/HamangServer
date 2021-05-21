@@ -1,6 +1,7 @@
 #pragma once
-#include "Player.h"
-#include "NetworkMessage.h"
+#include "Values.h"
+class Player;
+class NetworkMessage;
 class PlayerManager
 {
 
@@ -14,80 +15,17 @@ public:
 		nextActorNumber = 1;
 		hMutex = CreateMutex(NULL, FALSE, NULL);
 	}
-	~PlayerManager() {
-		for (pair<int, Player*> entry : playerHash) {
-			SAFE_DELETE(entry.second)
-		}
-	}
+	~PlayerManager();
 	
-	Player* CreatePlayer(LPPER_HANDLE_DATA handleInfo) {
-		WaitForSingleObject(hMutex, INFINITE);
-		Player* player = new Player();
-		player->handleInfo = handleInfo;
-		player->actorNumber = nextActorNumber;
-		player->isMasterClient = (playerHash.size() == 0);
-		playerHash.insert(make_pair(player->actorNumber, player));
-		handleInfo->player = player;
-		nextActorNumber++;
-		ReleaseMutex(hMutex);
-		return player;
-	}
+	Player* CreatePlayer(LPPER_HANDLE_DATA handleInfo) ;
 
-	void RemovePlayer(int actorNumber) {
-		WaitForSingleObject(hMutex, INFINITE);
-		if (playerHash.count(actorNumber) != 1) {
-			cout << "Missing actor" << endl;
-			return;
-		}
-		closesocket(playerHash[actorNumber]->handleInfo->clientSocket);
-		playerHash.erase(actorNumber);
-		cout << "Removed actor " << actorNumber<<endl;
-		ReleaseMutex(hMutex);
-	}
+	void RemovePlayer(int actorNumber);
 
-	void BroadcastMessage(int & sourceActorNumber, char * sendBuffer, DWORD & bytesReceived) {
-		for (auto entry : playerHash) {
-			Player* targetPlayer = entry.second;
-			if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
-			targetPlayer->Send(sendBuffer, bytesReceived);
-		}
-	}
-	void BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived) {
-		for (auto entry : playerHash) {
-			entry.second->Send(sendBuffer, bytesReceived);
-		}
-	}
-	void PrintPlayers() {
-		cout << "Connected players :" << playerHash.size() << endl;
-		for (auto entry : playerHash) {
-			cout << entry.second->actorNumber << endl;
-		}
-	}
-	/*string EncodePlayersToNetwork(Player * joinedPlayer) {
-		string message = NET_DELIM;
-		message = message.append(to_string(playerHash.size())).append(joinedPlayer->EncodeToNetwork());
-		for (auto entry : playerHash) {
-			if (entry.first == joinedPlayer->actorNumber) continue;
-			message = message.append(entry.second->EncodeToNetwork());
-		}
-		cout << "PLayer code: " << message << endl;
-		return message;	
-	}*/
-	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage & netMessage) {
-		netMessage.Append(to_string(playerHash.size()));
-		joinedPlayer->EncodeToNetwork(netMessage);
-		for (auto entry : playerHash) {
-			if (entry.first == joinedPlayer->actorNumber) continue;
-			entry.second->EncodeToNetwork(netMessage);
-		}
-	}
-	//void BroadcastMessageOthers(int whisperer, char* message, int amount) {
-	//	for (pair<int,Player*> entry : playerHash){
-	//		if (entry.second->actorNumber == whisperer) continue;
-	//		entry.second->Send(message, amount);
-	//	}
-	//}
+	void BroadcastMessage(int& sourceActorNumber, char* sendBuffer, DWORD& bytesReceived);
+	void BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived);
+	void PrintPlayers();
 
-
+	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage);
+	
 };
 

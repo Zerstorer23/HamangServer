@@ -1,8 +1,10 @@
 #include "IOCP_Server.h"
-#include "PlayerManager.h"
 #include "NetworkMessage.h"
+#include "PlayerManager.h"
+#include "Player.h"
 PlayerManager IOCP_Server::playerManager;
-unordered_map<string, string> IOCP_Server::serverCustomProperty;
+BufferedMessages IOCP_Server::bufferedRPCs;
+IOCP_Server* IOCP_Server::serverInstance = NULL;
 void IOCP_Server::OpenServer()
 {
     //1. CP오브젝트 생성. 마지막인자 0 -> 코어의 수만큼 cp오브젝트에 스레드를 할당
@@ -52,7 +54,7 @@ void IOCP_Server::OpenServer()
       
         //IO Read이벤트 생성후 구독
         LPPER_IO_DATA ioInfo = CreateBufferData(BUFFER,READ);
-        WSARecv(handleInfo->clientSocket, &(ioInfo->wsaBuf), 1, (LPDWORD)&receivedBytes, (LPDWORD)&flags, &(ioInfo->overlapped), NULL); //? 이거 역할이?
+        WSARecv(handleInfo->clientSocket, &(ioInfo->wsaBuf), 1, (LPDWORD)&receivedBytes, (LPDWORD)&flags, &(ioInfo->overlapped), NULL);
         //&(ioInfo->overlapped -> GetQueue...의 4번째  ioInfo로 들어감
     }
     return;
@@ -63,47 +65,16 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     printf("Connected client IP : %s \n", ipname);
     Player* player = playerManager.CreatePlayer(handleInfo);
     playerManager.PrintPlayers();
-
-    //1. Send All player information with name and hash
-            /*
-         1. Signature
-         2. Length
-         0 Sent Actor Num = -1
-         1 MessageInfo = Callback
-         3. sub info = join local
-         4 RoomInfo Begin==
-           4 - NumRoomHash
-                1 - key (int)
-                2 - value (string)
-         5. Player Begin===
-            5. NumPlayer
-            6. LocalPlayer
-               6. id, ismaster, numParam , key..value...
-
-         */
-         //params = [int]numPlayers(local Included) , LocalPlayerInfo , players[...
-         //Player Info = actorID, isMaster, customprop[num prop]
     NetworkMessage netMessage;
     netMessage.Append("-1");
     netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    netMessage.Append(to_string((int)LexCallback::LocalPlayerJoined));
-   /* string message =
-        to_string(0).append(NET_SIG).append(NET_DELIM)
-        .append(to_string(-1)).append(NET_DELIM)
-        .append(to_string((int)MessageInfo::ServerCallbacks)).append(NET_DELIM)
-        .append(to_string((int)LexCallback::LocalPlayerJoined));
-    cout << message << endl;
-    //RoomInfo start
-    message = message.append(EncodeServerToNetwork());
-    cout << message << endl;*/
+    netMessage.Append(to_string((int)LexCallback::RoomInformationReceived));
     EncodeServerToNetwork(netMessage);
     //Players
     playerManager.EncodePlayersToNetwork(player, netMessage);
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
     string message = netMessage.BuildNewSignedMessage();
-    DWORD bytesSend = message.length() +1;
-    cout << "Sent bytes " << bytesSend << endl;
-    LPPER_IO_DATA sendIO = CreateMessage(message, bytesSend);
+    LPPER_IO_DATA sendIO = CreateMessage(message);
     cout << "IO Created" << endl;
     player->Send(sendIO);
 }
@@ -205,15 +176,15 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
 
         //2. 메세지 길이 읽기
         int lengthOfMessages = stoi(netMessage.GetNext());
-            //3. 메세지 발언자 읽기
-        int senderID = stoi(netMessage.GetNext());
+        //3. 메세지 발언자 읽기
+        netMessage.sentActorNr = stoi(netMessage.GetNext());
         //4. 메세지 타입 읽기
         MessageInfo messageInfo = (MessageInfo)stoi(netMessage.GetNext());
         int endPointOfAMessage = beginPointOfAMessage + lengthOfMessages;
         cout << signature << "Is my packet from "<<beginPointOfAMessage<<" to "<<endPointOfAMessage << endl;
         if (messageInfo == MessageInfo::ServerRequest) {
             //4. request면 2번째 코드 읽고 switch
-            int messageCode = stoi(netMessage.GetNext());
+            Handle_ServerRequest(netMessage);
         }
         else if (messageInfo == MessageInfo::SetHash) {
             cout << "Handle hash : " << (int)messageInfo << endl;
@@ -222,7 +193,15 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
         }
         else {
             //0 /1 2 3 4/ 5 6
-            netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
+            //한단위씩 저장됨
+            string message =  netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
+            if (messageInfo == MessageInfo::RPC || messageInfo == MessageInfo::Instantiate 
+                || messageInfo == MessageInfo::Destroy || messageInfo == MessageInfo::SyncVar) {
+                //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
+                //저장이 필요한 타입들
+                netMessage.targetViewID = stoi(netMessage.GetNext());
+                bufferedRPCs.EnqueueMessage(netMessage.sentActorNr, netMessage.targetViewID, message);
+            }
             netMessage.iterator = endPointOfAMessage;
         }
     }
@@ -240,12 +219,50 @@ void IOCP_Server::Handle_PropertyRequest(NetworkMessage& netMessage)
     string key = netMessage.GetNext();
     string value = netMessage.GetNext();
     if (target == 0) {
-        IOCP_Server::SetProperty(key, value);
-        IOCP_Server::PrintProperties();
+        IOCP_Server::GetInst()->SetProperty(key, value);
+        IOCP_Server::GetInst()->PrintProperties();
     }
     else {
         playerManager.playerHash[target]->SetProperty(key, value);
         playerManager.playerHash[target]->PrintProperties();
     }
 }
+void IOCP_Server::Handle_ServerRequest(NetworkMessage& netMessage)
+{
+    LexRequest messageCode = (LexRequest)stoi(netMessage.GetNext());
+    switch (messageCode)
+    {
+    case LexRequest::None:
+        break;
+    case LexRequest::RemoveRPC_ViewID:
+        break;
+    case LexRequest::RemoveRPC_Player:
+        break;
+    case LexRequest::Receive_RPCbuffer:
+        Handle_ServerRequest(netMessage);
+        break;
+    }
 
+}
+void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage) {
+    Player * target = playerManager.playerHash[netMessage.sentActorNr];
+    bufferedRPCs.SendBufferedMessages(target);
+
+    //TODO 이게 먼저도착할거같은데
+    //EOL 보내기
+    NetworkMessage eolMessage;
+    eolMessage.Append(to_string(netMessage.sentActorNr));
+    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_string((int)LexCallback::BufferedRPCsLoaded));
+    string message = eolMessage.BuildNewSignedMessage();
+    DWORD bytesSend = message.length() + 1;
+    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    target->Send(sendIO);
+}
+void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
+    netMessage.Append(to_string(serverCustomProperty.size()));
+    for (auto entry : serverCustomProperty) {
+        netMessage.Append(entry.first);
+        netMessage.Append(entry.second);
+    }
+}

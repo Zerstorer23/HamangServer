@@ -19,6 +19,9 @@
     <Filter Include="02 Server">
       <UniqueIdentifier>{581a5bfd-114d-4852-a1a0-6bbe226057bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03 Network">
+      <UniqueIdentifier>{b31833a2-51af-4481-b4dd-bb6d1cbfcfca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PlayerManager.cpp">
@@ -37,7 +40,16 @@
       <Filter>02 Server</Filter>
     </ClCompile>
     <ClCompile Include="NetworkMessage.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>03 Network</Filter>
+    </ClCompile>
+    <ClCompile Include="ping.cpp">
+      <Filter>03 Network</Filter>
+    </ClCompile>
+    <ClCompile Include="PingManager.cpp">
+      <Filter>03 Network</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferedMessages.cpp">
+      <Filter>03 Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -60,7 +72,19 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="NetworkMessage.h">
+      <Filter>03 Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ping.h">
+      <Filter>03 Network</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PingManager.h">
+      <Filter>03 Network</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferedMessages.h">
+      <Filter>03 Network</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,7 +9,9 @@ enum class MessageInfo {
 };
 enum class LexCallback
 {
-    None, PlayerJoined, PlayerDisconnected, LocalPlayerJoined, Receive_RoomHash, Receive_PlayerHash, MasterClientChanged
+    None, PlayerJoined, PlayerDisconnected, OnLocalPlayerJoined, MasterClientChanged,
+    BufferedRPCsLoaded,
+    RoomInformationReceived
 };
 enum class LexRequest
 {

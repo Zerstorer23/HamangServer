@@ -7,7 +7,9 @@ public:
 	unsigned int iterator;
 	vector<string> tokens;
 	int count;
-	
+	int sentActorNr;
+	int targetViewID;
+
 	NetworkMessage() {
 		iterator = 0;
 		tokens = {};
@@ -48,19 +50,21 @@ public:
 		broadcastMessage.append(s);
 		count++;
 	}
-	//void AppendPrevious()
-	//{
-	//	broadcastMessage.append(NET_DELIM);
-	//	broadcastMessage.append(tokens[iterator-1]);
-	//}
-	void SaveStrings(int begin, int end) {
+
+
+	string SaveStrings(int begin, int end) {
+		string message;
 		for (int i = begin; i < end; i++) {
-			broadcastMessage.append(NET_DELIM);
-			broadcastMessage.append(tokens[i]);
+			message.append(NET_DELIM);
+			message.append(tokens[i]);
 			count++;
 		}
+		broadcastMessage.append(message);
+
 		cout << "Saved string: " << broadcastMessage << endl;
+		return message;
 	}
+
 	bool HasNext() {
 		return iterator < tokens.size();
 	}
@@ -68,11 +72,15 @@ public:
 	bool HasMessageToBroadcast() {
 		return !broadcastMessage.empty();
 	}
+
 	string BuildCopiedMessage() {
+		//방송메세지
 		return broadcastMessage;//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
 	}
 	string BuildNewSignedMessage() {
-		return "#LEX#"+ to_string(count+2)+ broadcastMessage;//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
+		//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
+		//서버에서 새로 생성된 메세지용
+		return "#LEX#"+ to_string(count+2)+ broadcastMessage;
 	}
 };
 

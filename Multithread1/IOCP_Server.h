@@ -1,16 +1,20 @@
 #pragma once
 
 #include "Values.h"
-#include "NetworkMessage.h"
+#include "BufferedMessages.h"
+class NetworkMessage;
 class PlayerManager;
 class IOCP_Server
 {
+private:
+	static IOCP_Server * serverInstance;
+public:
 	string ipAddress;
 	string portNumber;
 	int clientCount = 0;
 	//	SOCKET clientSockets[MAX_CLIENT];
 	static PlayerManager playerManager;
-
+	static BufferedMessages bufferedRPCs;
 	WSADATA wsaData;
 	HANDLE hCompletionPort;
 	SYSTEM_INFO sysInfo;
@@ -18,21 +22,30 @@ class IOCP_Server
 	SOCKADDR_IN serverAddress;
 
 
-	static unordered_map<string,string> serverCustomProperty;
+	HANDLE propertyMutex;
+	unordered_map<string,string> serverCustomProperty;
 
 
 public:
-	IOCP_Server() {
-		wsaData = {};
-		sysInfo = {};
-		serverSocket = {};
-		hCompletionPort = {};
-		serverAddress = {};
+	static IOCP_Server * GetInst() {
+		if (!serverInstance) {
+			serverInstance = new IOCP_Server();
+			return serverInstance;
+		}
+		else {
+			return serverInstance;
+		}
 	}
-	~IOCP_Server() {
+	static void DestroyInst() {
+		SAFE_DELETE(serverInstance);
 	}
+
+	IOCP_Server();
+	~IOCP_Server();
+
 	void InitialiseServer(string ip, string port) {
 		WSADATA wsaData;
+		propertyMutex = CreateMutex(NULL, FALSE, NULL);
 		ipAddress = ip;
 		portNumber = port;
 
@@ -55,7 +68,7 @@ public:
 		newIO->rwMode = rwMode; // IOCP 신호에는 입출력 구분이 없어서 직접 넣어야함
 		return newIO;
 	}
-	static LPPER_IO_DATA CloneBufferData(char* original, int bufferSize, int rwMode) {
+	LPPER_IO_DATA CloneBufferData(char* original, int bufferSize, int rwMode) {
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];
@@ -65,8 +78,10 @@ public:
 		cloneIO->rwMode = rwMode;
 		return cloneIO;
 	}
-	LPPER_IO_DATA CreateMessage(string& message, DWORD bytesSend) {
+	LPPER_IO_DATA CreateMessage(string& message) {
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
+		DWORD bytesSend = message.length() + 1;
+		cout << "Sent bytes " << bytesSend << endl;
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];
 		memcpy(cloneIO->buffer, message.c_str(), bytesSend);
@@ -84,10 +99,13 @@ public:
 		inet_pton(AF_INET, ip_addr, &(servAddr.sin_addr.s_addr));
 		servAddr.sin_port = htons(atoi(port));
 	}
-	static void SetProperty(string key, string value) {
+	void SetProperty(string key, string value) {
+		WaitForSingleObject(propertyMutex, INFINITE);
 		serverCustomProperty.insert_or_assign(key, value);
+		ReleaseMutex(propertyMutex);
 	}
-	static void PrintProperties() {
+
+	void PrintProperties() {
 		cout << endl;
 		for (auto entry : serverCustomProperty) {
 			cout << "Server |\t" << entry.first << "|\t" << entry.second << endl;
@@ -97,8 +115,16 @@ public:
 	static unsigned WINAPI EchoThreadMain(LPVOID CompletionPortIO);
 	static void HandleMessage(NetworkMessage& netMessage);
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
+	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
+
+
+	static void Handle_PingTest() {
+		
+	
+	};
 
 	string EncodeServerToNetwork() {
 		string message = NET_DELIM;
@@ -109,13 +135,8 @@ public:
 		cout << "Room: " << message << endl;
 		return message;
 	}
-	void EncodeServerToNetwork(NetworkMessage & netMessage) {
-		netMessage.Append(to_string(serverCustomProperty.size()));
-		for (auto entry : serverCustomProperty) {
-			netMessage.Append(entry.first);
-			netMessage.Append(entry.second);
-		}
-	}
+	void EncodeServerToNetwork(NetworkMessage& netMessage);
+	
 	void SetSocketSize(SOCKET& socket) {
 		int bufSize = BUFFER;
 		socklen_t len = sizeof(bufSize);

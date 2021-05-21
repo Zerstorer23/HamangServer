@@ -2,6 +2,8 @@
 #include "NetworkMessage.h"
 #include "PlayerManager.h"
 #include "Player.h"
+#include "BufferedMessages.h"
+#include "PingManager.h"
 PlayerManager IOCP_Server::playerManager;
 BufferedMessages IOCP_Server::bufferedRPCs;
 IOCP_Server* IOCP_Server::serverInstance = NULL;
@@ -241,6 +243,9 @@ void IOCP_Server::Handle_ServerRequest(NetworkMessage& netMessage)
     case LexRequest::Receive_RPCbuffer:
         Handle_ServerRequest(netMessage);
         break;
+    case LexRequest::Ping:
+        Handle_ServerRequest_Ping_Receive(netMessage);
+        break;
     }
 
 }
@@ -259,6 +264,14 @@ void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessa
     LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
     target->Send(sendIO);
 }
+
+void IOCP_Server::Handle_ServerRequest_Ping_Receive(NetworkMessage& netMessage) {
+    int senderID =stoi(netMessage.GetNext());
+    int remain =  pingManager.RecordPing_Receive(senderID);
+    if (remain < 4) {
+        pingManager.PingPlayer(playerManager.playerHash[senderID]);
+    }
+};
 void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
     netMessage.Append(to_string(serverCustomProperty.size()));
     for (auto entry : serverCustomProperty) {

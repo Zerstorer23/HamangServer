@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Values.h"
-#include "BufferedMessages.h"
 class NetworkMessage;
 class PlayerManager;
+class PingManager;
+class BufferedMessages;
 class IOCP_Server
 {
 private:
@@ -14,6 +15,7 @@ public:
 	int clientCount = 0;
 	//	SOCKET clientSockets[MAX_CLIENT];
 	static PlayerManager playerManager;
+	static PingManager pingManager;
 	static BufferedMessages bufferedRPCs;
 	WSADATA wsaData;
 	HANDLE hCompletionPort;
@@ -91,7 +93,8 @@ public:
 		return cloneIO;
 	}
 	void HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress);
-	
+
+
 
 	void BindAddress(SOCKADDR_IN& servAddr, const char* ip_addr, const  char* port) {
 		memset(&servAddr, 0, sizeof(servAddr));
@@ -118,13 +121,10 @@ public:
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_Ping_Receive(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
 
 
-	static void Handle_PingTest() {
-		
-	
-	};
 
 	string EncodeServerToNetwork() {
 		string message = NET_DELIM;

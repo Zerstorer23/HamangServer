@@ -31,7 +31,7 @@ public:
 public:
 	static IOCP_Server * GetInst() {
 		if (!serverInstance) {
-			serverInstance = new IOCP_Server();
+			serverInstance = new IOCP_Server;
 			return serverInstance;
 		}
 		else {
@@ -42,8 +42,9 @@ public:
 		SAFE_DELETE(serverInstance);
 	}
 
-	IOCP_Server();
-	~IOCP_Server();
+	IOCP_Server() {};
+	~IOCP_Server() {
+	};
 
 	void InitialiseServer(string ip, string port) {
 		WSADATA wsaData;
@@ -121,7 +122,7 @@ public:
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_Ping_Receive(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
 
 
@@ -139,14 +140,19 @@ public:
 	
 	void SetSocketSize(SOCKET& socket) {
 		int bufSize = BUFFER;
+		int sendBuffer = 0; // recv 0 아니면 buffer
+		//send는 0이어도 됨..
+		//recv
+		//다 안차면 수신대기상태... <- 0
+		//recv없이 얼마나 send되는지
 		socklen_t len = sizeof(bufSize);
-		setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, sizeof(bufSize));
+		//setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, sizeof(bufSize));
 		setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&bufSize, sizeof(bufSize));
 		int sendBuf, recvBuf;
-		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&sendBuf, &len);
+		//getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &len);
 		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&recvBuf, &len);
 		printf("receive buffer size: %d\n", recvBuf);
-		printf("send buffer size: %d\n", sendBuf);
+		//printf("send buffer size: %d\n", sendBuf);
 	}
 	void SetSocketReusable(SOCKET& socket) {
 		int option;

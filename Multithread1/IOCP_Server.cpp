@@ -6,6 +6,7 @@
 #include "PingManager.h"
 PlayerManager IOCP_Server::playerManager;
 BufferedMessages IOCP_Server::bufferedRPCs;
+PingManager IOCP_Server::pingManager;
 IOCP_Server* IOCP_Server::serverInstance = NULL;
 void IOCP_Server::OpenServer()
 {
@@ -122,7 +123,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
                 continue;
             }
             //1. Contents
-            cout << "Received Message :" << receivedIO->buffer << endl;
+           // cout << "Received Message :" << receivedIO->buffer << endl;
             //ServerRequest면 이 단계에서 송신
             //C#에서 받으니까 첫번째에 이상한 캐릭터 있음
                     //1. 첫자 지우고
@@ -185,6 +186,7 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
         int endPointOfAMessage = beginPointOfAMessage + lengthOfMessages;
         cout << signature << "Is my packet from "<<beginPointOfAMessage<<" to "<<endPointOfAMessage << endl;
         if (messageInfo == MessageInfo::ServerRequest) {
+            cout << "Received server request" << endl;
             //4. request면 2번째 코드 읽고 switch
             Handle_ServerRequest(netMessage);
         }
@@ -194,9 +196,11 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
             netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);
         }
         else {
+            cout << "Received echo message" << endl;
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
             string message =  netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
+            cout << "Received server request" <<message<< endl;
             if (messageInfo == MessageInfo::RPC || messageInfo == MessageInfo::Instantiate 
                 || messageInfo == MessageInfo::Destroy || messageInfo == MessageInfo::SyncVar) {
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
@@ -241,10 +245,10 @@ void IOCP_Server::Handle_ServerRequest(NetworkMessage& netMessage)
     case LexRequest::RemoveRPC_Player:
         break;
     case LexRequest::Receive_RPCbuffer:
-        Handle_ServerRequest(netMessage);
+        Handle_ServerRequest_SendBufferedRPCs(netMessage);
         break;
-    case LexRequest::Ping:
-        Handle_ServerRequest_Ping_Receive(netMessage);
+    case LexRequest::Receive_modifiedTime:
+        Handle_ServerRequest_ModifyTime(netMessage);
         break;
     }
 
@@ -260,17 +264,13 @@ void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessa
     eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
     eolMessage.Append(to_string((int)LexCallback::BufferedRPCsLoaded));
     string message = eolMessage.BuildNewSignedMessage();
-    DWORD bytesSend = message.length() + 1;
     LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
     target->Send(sendIO);
+    cout << "Sent buffered RPCs" << endl;
 }
 
-void IOCP_Server::Handle_ServerRequest_Ping_Receive(NetworkMessage& netMessage) {
-    int senderID =stoi(netMessage.GetNext());
-    int remain =  pingManager.RecordPing_Receive(senderID);
-    if (remain < 4) {
-        pingManager.PingPlayer(playerManager.playerHash[senderID]);
-    }
+void IOCP_Server::Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage) {
+    pingManager.Handle_Request_TimeSynch(netMessage);
 };
 void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
     netMessage.Append(to_string(serverCustomProperty.size()));

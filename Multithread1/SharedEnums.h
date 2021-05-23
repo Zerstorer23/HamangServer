@@ -12,9 +12,9 @@ enum class LexCallback
     None, PlayerJoined, PlayerDisconnected, OnLocalPlayerJoined, MasterClientChanged,
     BufferedRPCsLoaded,
     RoomInformationReceived,
-    Ping
+    PushServerTime
 };
 enum class LexRequest
 {
-    None, RemoveRPC_ViewID, RemoveRPC_Player, Receive_Initialise, Receive_RPCbuffer,Ping
+    None, RemoveRPC_ViewID, RemoveRPC_Player, Receive_Initialise, Receive_RPCbuffer,Receive_modifiedTime
 };

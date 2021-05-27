@@ -47,10 +47,7 @@ void IOCP_Server::OpenServer()
 
         //2. CP오브젝트, 소켓 연결
         //소켓에 overlappedio가 완료되면 cp로 정보 송신, 
-        CreateIoCompletionPort((HANDLE)clientSocket, hCompletionPort, (ULONG_PTR)handleInfo, 0); //원래 DWORD였음 struct늘리니까 LONG달라함
-        //client에 대한 io가 완료되면 정보가 hCompletionPort에 등록됨
-        //handleInfo는 정보 매개변수 ->getQueuedCopletionStatus의 세번쨰 인자로 전달됨
-
+        CreateIoCompletionPort((HANDLE)clientSocket, hCompletionPort, (ULONG_PTR)handleInfo, 0); 
         ///->이 단계에서 소켓 리스트를 만들 필요가 있음
         HandlePlayerJoin(handleInfo,clientAddress);
 
@@ -78,8 +75,18 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
     string message = netMessage.BuildNewSignedMessage();
     LPPER_IO_DATA sendIO = CreateMessage(message);
-    cout << "IO Created" << endl;
     player->Send(sendIO);
+
+    //actorID , MessageInfo , callbackType, params
+    NetworkMessage broadcastMessage;
+    broadcastMessage.Append("-1");
+    broadcastMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    broadcastMessage.Append(to_string((int)LexCallback::PlayerJoined));
+    player->EncodeToNetwork(broadcastMessage);
+    string brmsg = broadcastMessage.BuildNewSignedMessage();
+    DWORD size = brmsg.length() + 1;
+    playerManager.BroadcastMessage(player->actorNumber,(char *)brmsg.c_str(), size);
+    cout << "IO Created" << endl;
 }
 
 /*
@@ -115,10 +122,12 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
         if (receivedIO->rwMode == READ) {
             if (bytesReceived == 0) {//종료
                 cout << "Disconnect Client" << endl;
+                int disconnPlayer = sourcePlayer->actorNumber;
                 SAFE_DELETE(handleInfo)
                 SAFE_DELETE(receivedIO->buffer)
                 SAFE_DELETE(receivedIO)
                 playerManager.RemovePlayer(sourcePlayer->actorNumber);
+                HandlePlayerDisconnect(disconnPlayer);
                 //Callback": Disconnect 송신
                 continue;
             }
@@ -165,7 +174,19 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     return 0;
 
 }
+void IOCP_Server::HandlePlayerDisconnect(int disconnectActorID) 
+{
 
+    //actorID , MessageInfo , callbackType, params
+    NetworkMessage netMessage;
+    netMessage.Append("0");
+    netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    netMessage.Append(to_string((int)LexCallback::PlayerDisconnected));
+    netMessage.Append(to_string(disconnectActorID));
+    string msg = netMessage.BuildNewSignedMessage();
+    DWORD size = msg.length() + 1;
+    playerManager.BroadcastMessageAll((char *)msg.c_str(),size);
+}
 
 
 void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
@@ -240,9 +261,8 @@ void IOCP_Server::Handle_ServerRequest(NetworkMessage& netMessage)
     {
     case LexRequest::None:
         break;
-    case LexRequest::RemoveRPC_ViewID:
-        break;
-    case LexRequest::RemoveRPC_Player:
+    case LexRequest::RemoveRPC:
+        Handle_ServerRequest_RemoveRPCs(netMessage);
         break;
     case LexRequest::Receive_RPCbuffer:
         Handle_ServerRequest_SendBufferedRPCs(netMessage);
@@ -271,6 +291,23 @@ void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessa
 
 void IOCP_Server::Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage) {
     pingManager.Handle_Request_TimeSynch(netMessage);
+};
+void IOCP_Server::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage) {
+    int actorID = stoi(netMessage.GetNext());
+    int viewID = stoi(netMessage.GetNext());
+    if (actorID != -1) {
+        if (viewID != -1) {
+
+            bufferedRPCs.RemoveRPC(actorID, viewID);
+        }
+        else {
+            bufferedRPCs.RemovePlayerNr(actorID);
+        }
+    }
+    else {
+            bufferedRPCs.RemoveViewID(viewID);
+    }
+
 };
 void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
     netMessage.Append(to_string(serverCustomProperty.size()));

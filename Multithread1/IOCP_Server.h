@@ -94,6 +94,7 @@ public:
 		return cloneIO;
 	}
 	void HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress);
+	static void HandlePlayerDisconnect(int disconnectActorID);
 
 
 
@@ -123,6 +124,7 @@ public:
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
 
 

@@ -60,11 +60,13 @@ void IOCP_Server::OpenServer()
     return;
 }
 void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress) {
+    // 1.플레이어 추가
     char ipname[128];
     inet_ntop(AF_INET, (void*)&clientAddress.sin_addr, (PSTR)ipname, sizeof(ipname));
     printf("Connected client IP : %s \n", ipname);
     Player* player = playerManager.CreatePlayer(handleInfo);
     playerManager.PrintPlayers();
+    //2. 룸정보 추가
     NetworkMessage netMessage;
     netMessage.Append("-1");
     netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
@@ -74,19 +76,11 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     playerManager.EncodePlayersToNetwork(player, netMessage);
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
     string message = netMessage.BuildNewSignedMessage();
-    LPPER_IO_DATA sendIO = CreateMessage(message);
-    player->Send(sendIO);
+    LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
+    player->Send(roomInformationPacket);
 
-    //actorID , MessageInfo , callbackType, params
-    NetworkMessage broadcastMessage;
-    broadcastMessage.Append("-1");
-    broadcastMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    broadcastMessage.Append(to_string((int)LexCallback::PlayerJoined));
-    player->EncodeToNetwork(broadcastMessage);
-    string brmsg = broadcastMessage.BuildNewSignedMessage();
-    DWORD size = brmsg.length() + 1;
-    playerManager.BroadcastMessage(player->actorNumber,(char *)brmsg.c_str(), size);
-    cout << "IO Created" << endl;
+    //3 시간 동기화 1차전송
+    pingManager.Handle_Request_TimeSynch(player,0,1);
 }
 
 /*
@@ -117,7 +111,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
         //40 30 // 40 10더
         //Shared pointer
         Player * sourcePlayer = handleInfo->player;
-
+        cout << "Bytes received " << bytesReceived << endl;
         clientSocket = handleInfo->clientSocket;
         if (receivedIO->rwMode == READ) {
             if (bytesReceived == 0) {//종료
@@ -137,7 +131,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             //C#에서 받으니까 첫번째에 이상한 캐릭터 있음
                     //1. 첫자 지우고
             string message = receivedIO->buffer;
-            message.erase(0,1);
+            //message.erase(0,1);
 
             cout << "Cleansed Message :" << message << endl;
             //2. split하고
@@ -180,9 +174,9 @@ void IOCP_Server::HandlePlayerDisconnect(int disconnectActorID)
     //actorID , MessageInfo , callbackType, params
     NetworkMessage netMessage;
     netMessage.Append("0");
-    netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    netMessage.Append(to_string((int)LexCallback::PlayerDisconnected));
-    netMessage.Append(to_string(disconnectActorID));
+    netMessage.Append((int)MessageInfo::ServerCallbacks);
+    netMessage.Append((int)LexCallback::PlayerDisconnected);
+    netMessage.Append(disconnectActorID);
     string msg = netMessage.BuildNewSignedMessage();
     DWORD size = msg.length() + 1;
     playerManager.BroadcastMessageAll((char *)msg.c_str(),size);
@@ -221,7 +215,6 @@ void IOCP_Server::HandleMessage(NetworkMessage & netMessage)
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
             string message =  netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
-            cout << "Received server request" <<message<< endl;
             if (messageInfo == MessageInfo::RPC || messageInfo == MessageInfo::Instantiate 
                 || messageInfo == MessageInfo::Destroy || messageInfo == MessageInfo::SyncVar) {
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
@@ -264,34 +257,55 @@ void IOCP_Server::Handle_ServerRequest(NetworkMessage& netMessage)
     case LexRequest::RemoveRPC:
         Handle_ServerRequest_RemoveRPCs(netMessage);
         break;
-    case LexRequest::Receive_RPCbuffer:
-        Handle_ServerRequest_SendBufferedRPCs(netMessage);
-        break;
     case LexRequest::Receive_modifiedTime:
-        Handle_ServerRequest_ModifyTime(netMessage);
+        Handle_ServerRequest_ReceiveModifiedTime(netMessage);
+        break;
+    case LexRequest::ChangeMasterClient:
+        Handle_ServerRequest_ChangeMasterClient(netMessage);
         break;
     }
 
 }
-void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage) {
-    Player * target = playerManager.playerHash[netMessage.sentActorNr];
-    bufferedRPCs.SendBufferedMessages(target);
 
-    //TODO 이게 먼저도착할거같은데
-    //EOL 보내기
+void IOCP_Server::Handle_ServerRequest_ChangeMasterClient(NetworkMessage& netMessage) {
+    //actorID , MessageInfo , callbackType, params
+    int newMasterActor = stoi(netMessage.GetNext());
+    playerManager.SetMasterClient(newMasterActor);
     NetworkMessage eolMessage;
     eolMessage.Append(to_string(netMessage.sentActorNr));
     eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    eolMessage.Append(to_string((int)LexCallback::BufferedRPCsLoaded));
+    eolMessage.Append(to_string((int)LexCallback::MasterClientChanged));
+    eolMessage.Append(to_string(newMasterActor));
+    string message = eolMessage.BuildNewSignedMessage();
+    DWORD size = message.length();
+    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    playerManager.BroadcastMessageAll((char*)message.c_str(), size);
+}
+void IOCP_Server::Handle_ServerRequest_SendBufferedRPCs(Player* target) {
+    bufferedRPCs.SendBufferedMessages(target);
+
+    NetworkMessage eolMessage;
+    eolMessage.Append(to_string(target->actorNumber));
+    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_string((int)LexCallback::OnLocalPlayerJoined));
     string message = eolMessage.BuildNewSignedMessage();
     LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
     target->Send(sendIO);
     cout << "Sent buffered RPCs" << endl;
+
+    //actorID , MessageInfo , callbackType, params
+// PlayerJoined는 로컬제외 전체방송
+    NetworkMessage broadcastMessage;
+    broadcastMessage.Append("-1");
+    broadcastMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    broadcastMessage.Append(to_string((int)LexCallback::PlayerJoined));
+    target->EncodeToNetwork(broadcastMessage);
+    string brmsg = broadcastMessage.BuildNewSignedMessage();
+    DWORD size = (DWORD)brmsg.length();
+    playerManager.BroadcastMessage(target->actorNumber, (char*)brmsg.c_str(), size);
+    cout << "IO Created" << endl;
 }
 
-void IOCP_Server::Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage) {
-    pingManager.Handle_Request_TimeSynch(netMessage);
-};
 void IOCP_Server::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage) {
     int actorID = stoi(netMessage.GetNext());
     int viewID = stoi(netMessage.GetNext());
@@ -308,7 +322,21 @@ void IOCP_Server::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage) {
             bufferedRPCs.RemoveViewID(viewID);
     }
 
-};
+}
+void IOCP_Server::Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage)
+{
+    //LEX / 0 =SERVER / PING=MESSAGEINFO / targetPlater /1 OR 0 = INDEX TO REFER / SERVERTIME or EXPECTEDDELAY //Part of local Join
+    int targetPlayerNumber = stoi(netMessage.GetNext());
+    int isMod = stoi(netMessage.GetNext());//always 1
+    (netMessage.GetNext());
+    int isLocal = stoi(netMessage.GetNext());
+    Player* target = playerManager.playerHash[targetPlayerNumber];
+    pingManager.Handle_Request_TimeSynch(target, isMod, isLocal);
+    if (isLocal) {
+        Handle_ServerRequest_SendBufferedRPCs(target);
+    }
+}
+;
 void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
     netMessage.Append(to_string(serverCustomProperty.size()));
     for (auto entry : serverCustomProperty) {

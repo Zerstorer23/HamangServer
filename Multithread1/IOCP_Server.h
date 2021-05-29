@@ -42,7 +42,14 @@ public:
 		SAFE_DELETE(serverInstance);
 	}
 
-	IOCP_Server() {};
+	IOCP_Server() {
+		hCompletionPort = {};
+		propertyMutex = {};
+		serverAddress = {};
+		sysInfo = {};
+		wsaData = {};
+		serverSocket = {};
+	};
 	~IOCP_Server() {
 	};
 
@@ -75,6 +82,7 @@ public:
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];
+		cout << "Copy size " << bufferSize << " to " << BUFFER << endl;
 		memcpy(cloneIO->buffer, original, bufferSize);//
 		cloneIO->wsaBuf.len = bufferSize;
 		cloneIO->wsaBuf.buf = cloneIO->buffer;//
@@ -82,16 +90,17 @@ public:
 		return cloneIO;
 	}
 	LPPER_IO_DATA CreateMessage(string& message) {
-		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
-		DWORD bytesSend = message.length() + 1;
-		cout << "Sent bytes " << bytesSend << endl;
-		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
-		cloneIO->buffer = new char[BUFFER];
-		memcpy(cloneIO->buffer, message.c_str(), bytesSend);
-		cloneIO->wsaBuf.len = bytesSend;
-		cloneIO->wsaBuf.buf = cloneIO->buffer;
-		cloneIO->rwMode = WRITE;
-		return cloneIO;
+		int bytesSend = message.length();
+		//cout << "Sent bytes " << bytesSend << endl;
+		//LPPER_IO_DATA cloneIO = new PER_IO_DATA();
+		//memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
+		//cloneIO->buffer = new char[BUFFER];
+		//memcpy(cloneIO->buffer, message.c_str(), bytesSend);
+		//cloneIO->wsaBuf.len = bytesSend;
+		//cloneIO->wsaBuf.buf = cloneIO->buffer;
+		//cloneIO->rwMode = WRITE;
+		//return cloneIO;
+		return CloneBufferData((char*)message.c_str(), bytesSend, WRITE);
 	}
 	void HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress);
 	static void HandlePlayerDisconnect(int disconnectActorID);
@@ -122,9 +131,10 @@ public:
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	static void Handle_BroadcastString(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_SendBufferedRPCs(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_ModifyTime(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_SendBufferedRPCs(Player* target);
 	static void Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage);
+	static void Handle_ServerRequest_ChangeMasterClient(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
 
 
@@ -150,7 +160,8 @@ public:
 		socklen_t len = sizeof(bufSize);
 		//setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, sizeof(bufSize));
 		setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&bufSize, sizeof(bufSize));
-		int sendBuf, recvBuf;
+		//int sendBuf,
+			int recvBuf;
 		//getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &len);
 		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&recvBuf, &len);
 		printf("receive buffer size: %d\n", recvBuf);

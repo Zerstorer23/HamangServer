@@ -10,11 +10,12 @@ enum class MessageInfo {
 enum class LexCallback
 {
     None, PlayerJoined, PlayerDisconnected, OnLocalPlayerJoined, MasterClientChanged,
-    BufferedRPCsLoaded,
+ //   BufferedRPCsLoaded,
     RoomInformationReceived,
     PushServerTime
+    , HashChanged
 };
 enum class LexRequest
 {
-    None, RemoveRPC, Receive_Initialise, Receive_RPCbuffer, Receive_modifiedTime
+    None, RemoveRPC, ChangeMasterClient, Receive_modifiedTime
 };

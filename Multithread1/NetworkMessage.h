@@ -23,7 +23,7 @@ public:
 		int current = 0;
 		vector<string> x;
 		x.clear();
-		current = str.find(delim);
+		current = (int)str.find(delim);
 		//find는 찾을게 없으면 npos를 리턴함
 		while (current != string::npos) {
 			string substring = str.substr(previous, current - previous);
@@ -31,10 +31,10 @@ public:
 			x.push_back(substring);
 			cout << substring << endl;
 			previous = current + 1;
-			current = str.find(delim, previous);
+			current = (int)str.find(delim, previous);
 		}
 		x.push_back(str.substr(previous, current - previous));
-		count = x.size();
+		count =(int) x.size();
 		tokens =  x;
 	}
 	string GetNext() {
@@ -50,7 +50,12 @@ public:
 		broadcastMessage.append(s);
 		count++;
 	}
-
+	void Append(int s)
+	{
+		broadcastMessage.append(NET_DELIM);
+		broadcastMessage.append(to_string(s));
+		count++;
+	}
 
 	string SaveStrings(int begin, int end) {
 		string message;

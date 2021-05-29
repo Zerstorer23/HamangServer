@@ -30,7 +30,7 @@ public:
 		ping->received = false; 
 		pingRecords[player]=ping;
 	}
-	void RecordPing_Receive(Player* player);
+	void RecordPing_Receive(Player* player,int requestBufferedRPCs);
 
 	long long  CurrentTimeInMills() {
 		return  duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -47,7 +47,7 @@ public:
 		}
 		return ;
 	}
-	void Handle_Request_TimeSynch(NetworkMessage& netMessage);
-	void PushServerTimeToPlayer(Player* player, int isModification, long long timeValue);
+	void Handle_Request_TimeSynch(Player* targetPlayer, int isModification,int requestBufferedRPCs);
+	void PushServerTimeToPlayer(Player* player, int isModification, long long timeValue, int requestBufferedRPCs);
 };
 

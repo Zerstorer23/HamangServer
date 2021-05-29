@@ -7,11 +7,13 @@ class PlayerManager
 
 public:
 	unordered_map<int, Player*> playerHash;
+	Player* masterPlayer;
 	int nextActorNumber;
 	HANDLE hMutex;
 
 public:
 	PlayerManager() {
+		masterPlayer = nullptr;
 		nextActorNumber = 1;
 		hMutex = CreateMutex(NULL, FALSE, NULL);
 	}
@@ -24,7 +26,7 @@ public:
 	void BroadcastMessage(int& sourceActorNumber, char* sendBuffer, DWORD& bytesReceived);
 	void BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived);
 	void PrintPlayers();
-
+	void SetMasterClient(int newMaster);
 	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage);
 	
 };

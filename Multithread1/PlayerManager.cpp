@@ -16,6 +16,9 @@ Player* PlayerManager::CreatePlayer(LPPER_HANDLE_DATA handleInfo)
 	player->handleInfo = handleInfo;
 	player->actorNumber = nextActorNumber;
 	player->isMasterClient = (playerHash.size() == 0);
+	if (player->isMasterClient) {
+		masterPlayer = player;
+	}
 	playerHash.insert(make_pair(player->actorNumber, player));
 	handleInfo->player = player;
 	nextActorNumber++;
@@ -23,11 +26,23 @@ Player* PlayerManager::CreatePlayer(LPPER_HANDLE_DATA handleInfo)
 	return player;
 }
 
+void PlayerManager::SetMasterClient(int newMaster) {
+	WaitForSingleObject(hMutex, INFINITE);
+	if (masterPlayer) {
+
+		masterPlayer->isMasterClient = false;
+	}
+	playerHash[newMaster]->isMasterClient = true;
+	masterPlayer = playerHash[newMaster];
+	ReleaseMutex(hMutex);
+};
+
 void PlayerManager::RemovePlayer(int actorNumber)
 {
 	WaitForSingleObject(hMutex, INFINITE);
 	if (playerHash.count(actorNumber) != 1) {
 		cout << "Missing actor" << endl;
+		ReleaseMutex(hMutex);
 		return;
 	}
 	closesocket(playerHash[actorNumber]->handleInfo->clientSocket);

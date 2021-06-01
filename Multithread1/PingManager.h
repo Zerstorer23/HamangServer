@@ -11,13 +11,29 @@ class Player;
 class PlayerManager;
 class PingManager
 {
+private:
 	unordered_map<int,P_PingRecord> pingRecords;
-	static long long  serverTime;//keeps onincrementing
-public:
-	PingManager();
-	~PingManager() {
+	long long  serverTime;//keeps onincrementing
 
+	static PingManager* instance;
+public:
+	static PingManager* GetInst() {
+		if (!instance) {
+			instance = new PingManager;
+			return instance;
+		}
+		else {
+			return instance;
+		}
 	}
+	static void DestroyInst() {
+		SAFE_DELETE(instance);
+	}
+private:
+	PingManager();
+	~PingManager();
+
+public:
 	void UpdateTime()
 	{
 		serverTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -30,7 +46,7 @@ public:
 		ping->received = false; 
 		pingRecords[player]=ping;
 	}
-	void RecordPing_Receive(Player* player,int requestBufferedRPCs);
+	void TimeSynch_Receive(Player* player,int requestBufferedRPCs);
 
 	long long  CurrentTimeInMills() {
 		return  duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -47,7 +63,7 @@ public:
 		}
 		return ;
 	}
-	void Handle_Request_TimeSynch(Player* targetPlayer, int isModification,int requestBufferedRPCs);
+	void Handle_Request_TimeSynch(Player* targetPlayer, int isModification, int requestBufferedRPCs);
 	void PushServerTimeToPlayer(Player* player, int isModification, long long timeValue, int requestBufferedRPCs);
 };
 

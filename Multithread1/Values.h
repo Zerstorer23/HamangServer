@@ -41,7 +41,7 @@ using chrono::system_clock;
 		}							\
 	private:					\
 		Type();					\
-		~Type()				
+		~Type();				
 
 #define DEFINITION_SINGLE(Type) Type* Type::instance = NULL;
 #define GET_SINGLE(Type) Type::GetInst()

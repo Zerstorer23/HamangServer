@@ -1,7 +1,12 @@
 #include "PlayerManager.h"
 #include "Player.h"
 #include "NetworkMessage.h"
-
+DEFINITION_SINGLE(PlayerManager)
+PlayerManager::PlayerManager() {
+		masterPlayer = nullptr;
+		nextActorNumber = 1;
+		hMutex = CreateMutex(NULL, FALSE, NULL);
+	}
 PlayerManager::~PlayerManager()
 {
 	for (pair<int, Player*> entry : playerHash) {

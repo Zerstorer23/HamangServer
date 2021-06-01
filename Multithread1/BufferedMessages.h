@@ -10,17 +10,9 @@ private:
 	vector<PRPC> messageQueue;
 public:
 	HANDLE hMutex;
+	DECLARE_SINGLE(BufferedMessages)
 
-	BufferedMessages() {
-
-		hMutex = CreateMutex(NULL, FALSE, NULL);
-	}
-	~BufferedMessages() {
-		for (auto message : messageQueue) {
-			SAFE_DELETE(message);
-		}
-	}
-
+public:
 	void EnqueueMessage(int playerNr, int viewID, string message) {
 		WaitForSingleObject(hMutex, INFINITE);
 		PRPC rpc = new RPC();

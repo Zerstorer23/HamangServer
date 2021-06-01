@@ -10,14 +10,9 @@ public:
 	Player* masterPlayer;
 	int nextActorNumber;
 	HANDLE hMutex;
+	DECLARE_SINGLE(PlayerManager)
 
 public:
-	PlayerManager() {
-		masterPlayer = nullptr;
-		nextActorNumber = 1;
-		hMutex = CreateMutex(NULL, FALSE, NULL);
-	}
-	~PlayerManager();
 	
 	Player* CreatePlayer(LPPER_HANDLE_DATA handleInfo) ;
 
@@ -29,5 +24,8 @@ public:
 	void SetMasterClient(int newMaster);
 	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage);
 	
+	int GetPlayerCount() {
+		return playerHash.size();
+	}
 };
 

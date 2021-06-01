@@ -1,4 +1,10 @@
-﻿  IOCP_Server.cpp
+﻿  BufferedMessages.cpp
+  IOCP_Server.cpp
+  MessageHandler.cpp
+  NetworkMessage.cpp
   PingManager.cpp
+  Player.cpp
+  PlayerManager.cpp
+  main.cpp
   코드를 생성하고 있습니다...
-  Multithread1.vcxproj -> C:\Users\Lex\Documents\GitHub\HamangServer\Debug\Multithread1.exe
+  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe

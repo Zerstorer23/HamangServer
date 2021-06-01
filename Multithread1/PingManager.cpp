@@ -4,7 +4,7 @@
 #include "IOCP_Server.h"
 #include "Player.h"
 
-long long  PingManager::serverTime;//keeps onincrementing
+PingManager* PingManager::instance = NULL;
 
 PingManager::PingManager()
 {
@@ -12,8 +12,11 @@ PingManager::PingManager()
 	cout << "Server Time" << serverTime << endl;
 	//thread timeStampThread(UpdateTime);//생각해보니 업데이트할필요가 없네..?
 }
+PingManager::~PingManager()
+{
+}
 
-void PingManager::RecordPing_Receive(Player* player, int requestBufferedRPCs)
+void PingManager::TimeSynch_Receive(Player* player, int requestBufferedRPCs)
 {
 	UpdateTime();
 	P_PingRecord ping = pingRecords[player->actorNumber];
@@ -33,7 +36,7 @@ void PingManager::Handle_Request_TimeSynch(Player * targetPlayer, int isModifica
 		PushServerTimeToPlayer(targetPlayer, 0, serverTime, requestBufferedRPCs);
 	}
 	else {
-		RecordPing_Receive(targetPlayer, requestBufferedRPCs);
+		TimeSynch_Receive(targetPlayer, requestBufferedRPCs);
 
 	}
 }
@@ -55,3 +58,5 @@ void PingManager::PushServerTimeToPlayer(Player * player, int isModification, lo
 	RecordPing_Send(player->actorNumber, timeValue);
 	cout << "Push Time" << timeValue << endl;
 }
+
+

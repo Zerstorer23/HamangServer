@@ -2,7 +2,17 @@
 #include "NetworkMessage.h"
 #include "IOCP_Server.h"
 #include "Player.h"
+DEFINITION_SINGLE(BufferedMessages)
 
+BufferedMessages::BufferedMessages() {
+
+	hMutex = CreateMutex(NULL, FALSE, NULL);
+}
+BufferedMessages::~BufferedMessages() {
+	for (auto message : messageQueue) {
+		SAFE_DELETE(message);
+	}
+}
 void BufferedMessages::SendBufferedMessages(Player* player)
 {
 	WaitForSingleObject(hMutex, INFINITE);

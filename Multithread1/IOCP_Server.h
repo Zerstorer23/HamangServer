@@ -5,6 +5,7 @@ class NetworkMessage;
 class PlayerManager;
 class PingManager;
 class BufferedMessages;
+class MessageHandler;
 class IOCP_Server
 {
 private:
@@ -14,8 +15,6 @@ public:
 	string portNumber;
 	int clientCount = 0;
 	//	SOCKET clientSockets[MAX_CLIENT];
-	static PlayerManager playerManager;
-	static PingManager pingManager;
 	static BufferedMessages bufferedRPCs;
 	WSADATA wsaData;
 	HANDLE hCompletionPort;
@@ -26,6 +25,8 @@ public:
 
 	HANDLE propertyMutex;
 	unordered_map<string,string> serverCustomProperty;
+
+	static MessageHandler messageHandler;
 
 
 public:
@@ -41,7 +42,7 @@ public:
 	static void DestroyInst() {
 		SAFE_DELETE(serverInstance);
 	}
-
+private:
 	IOCP_Server() {
 		hCompletionPort = {};
 		propertyMutex = {};
@@ -52,7 +53,7 @@ public:
 	};
 	~IOCP_Server() {
 	};
-
+public:
 	void InitialiseServer(string ip, string port) {
 		WSADATA wsaData;
 		propertyMutex = CreateMutex(NULL, FALSE, NULL);
@@ -91,19 +92,17 @@ public:
 	}
 	LPPER_IO_DATA CreateMessage(string& message) {
 		int bytesSend = message.length();
-		//cout << "Sent bytes " << bytesSend << endl;
-		//LPPER_IO_DATA cloneIO = new PER_IO_DATA();
-		//memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
-		//cloneIO->buffer = new char[BUFFER];
-		//memcpy(cloneIO->buffer, message.c_str(), bytesSend);
-		//cloneIO->wsaBuf.len = bytesSend;
-		//cloneIO->wsaBuf.buf = cloneIO->buffer;
-		//cloneIO->rwMode = WRITE;
-		//return cloneIO;
 		return CloneBufferData((char*)message.c_str(), bytesSend, WRITE);
 	}
+	static void RecycleIO(LPPER_IO_DATA receivedIO, int rwMode) {
+		memset(&(receivedIO->overlapped), 0, sizeof(OVERLAPPED));
+		receivedIO->wsaBuf.len = BUFFER;
+		receivedIO->wsaBuf.buf = receivedIO->buffer;
+		receivedIO->rwMode = rwMode;
+	}
+
 	void HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress);
-	static void HandlePlayerDisconnect(int disconnectActorID);
+	static void HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_DATA handleInfo, Player* sourcePlayer);
 
 
 
@@ -127,14 +126,6 @@ public:
 	}
 
 	static unsigned WINAPI EchoThreadMain(LPVOID CompletionPortIO);
-	static void HandleMessage(NetworkMessage& netMessage);
-	static void Handle_PropertyRequest(NetworkMessage& netMessage);
-	static void Handle_ServerRequest(NetworkMessage& netMessage);
-	static void Handle_BroadcastString(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_SendBufferedRPCs(Player* target);
-	static void Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_ChangeMasterClient(NetworkMessage& netMessage);
 	static void Append(string& s, string& broadcastString);
 
 
@@ -175,5 +166,7 @@ public:
 
 	}
 	void OpenServer();
+
+	void ResetServer();
 };
 

@@ -30,9 +30,6 @@
     <ClCompile Include="Player.cpp">
       <Filter>01 PlayerManager</Filter>
     </ClCompile>
-    <ClCompile Include="ServerExample.cpp">
-      <Filter>02 Server</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -42,14 +39,14 @@
     <ClCompile Include="NetworkMessage.cpp">
       <Filter>03 Network</Filter>
     </ClCompile>
-    <ClCompile Include="ping.cpp">
-      <Filter>03 Network</Filter>
-    </ClCompile>
     <ClCompile Include="PingManager.cpp">
       <Filter>03 Network</Filter>
     </ClCompile>
     <ClCompile Include="BufferedMessages.cpp">
       <Filter>03 Network</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageHandler.cpp">
+      <Filter>02 Server</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -62,9 +59,6 @@
     <ClInclude Include="Player.h">
       <Filter>01 PlayerManager</Filter>
     </ClInclude>
-    <ClInclude Include="ServerExample.h">
-      <Filter>02 Server</Filter>
-    </ClInclude>
     <ClInclude Include="IOCP_Server.h">
       <Filter>02 Server</Filter>
     </ClInclude>
@@ -72,9 +66,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="NetworkMessage.h">
-      <Filter>03 Network</Filter>
-    </ClInclude>
-    <ClInclude Include="ping.h">
       <Filter>03 Network</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -86,5 +77,13 @@
     <ClInclude Include="BufferedMessages.h">
       <Filter>03 Network</Filter>
     </ClInclude>
+    <ClInclude Include="MessageHandler.h">
+      <Filter>02 Server</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ServerRule.txt">
+      <Filter>헤더 파일</Filter>
+    </Text>
   </ItemGroup>
 </Project>

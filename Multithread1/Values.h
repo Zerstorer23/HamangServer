@@ -12,6 +12,7 @@
 #include <queue>
 #include <chrono>
 #include <ctime>
+#include <algorithm> // remove and remove_if
 #include <thread>
 
 using namespace std;

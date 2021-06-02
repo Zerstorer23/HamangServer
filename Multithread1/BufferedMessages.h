@@ -31,7 +31,7 @@ public:
 		while (iter != iterEnd) {
 			if ((*iter)->playerActorNr == playerNr) {
 				SAFE_DELETE(*iter);
-				messageQueue.erase(iter);
+				iter = messageQueue.erase(iter);
 			}
 			else {
 				iter++;
@@ -46,7 +46,7 @@ public:
 		while (iter != iterEnd) {
 			if ((*iter)->viewID == viewID) {
 				SAFE_DELETE(*iter);
-				messageQueue.erase(iter);
+				iter = messageQueue.erase(iter);
 			}
 			else {
 				iter++;
@@ -61,7 +61,7 @@ public:
 		while (iter != iterEnd) {
 			if ((*iter)->viewID == viewID && (*iter)->playerActorNr == playerNr) {
 				SAFE_DELETE(*iter);
-				messageQueue.erase(iter);
+				iter = messageQueue.erase(iter);
 			}
 			else {
 				iter++;
@@ -75,10 +75,13 @@ public:
 		auto iter = messageQueue.begin();
 		auto iterEnd = messageQueue.end();
 		while (iter != iterEnd) {
-			SAFE_DELETE(*iter);
-			messageQueue.erase(iter);
+			//delete* iter;
+			//TODO 동적할당삭제
+			iter = messageQueue.erase(iter);
 		}
+		//messageQueue.erase(remove(messageQueue.begin(), messageQueue.end(),NULL), messageQueue.end());
 		ReleaseMutex(hMutex);
 	}
+public:
 	void SendBufferedMessages(Player* player);
 };

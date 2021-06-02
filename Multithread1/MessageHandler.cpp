@@ -11,7 +11,7 @@
 void MessageHandler::HandleMessage(NetworkMessage& netMessage)
 {
     while (netMessage.HasNext()) {
-        int beginPointOfAMessage = netMessage.iterator;
+        netMessage.SetBeginPoint();
         //1. Check signature
         string signature = netMessage.GetNext();
         bool isMyPacket = (signature.compare(NET_SIG) == 0);
@@ -23,8 +23,8 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         netMessage.sentActorNr = stoi(netMessage.GetNext());
         //4. 메세지 타입 읽기
         MessageInfo messageInfo = (MessageInfo)stoi(netMessage.GetNext());
-        int endPointOfAMessage = beginPointOfAMessage + lengthOfMessages;
-        cout << signature << "Is my packet from " << beginPointOfAMessage << " to " << endPointOfAMessage << endl;
+        netMessage.SetEndPoint(lengthOfMessages);
+        cout << signature << "Is my packet from " << netMessage.beginPoint << " to " << netMessage.endPoint << endl;
         if (messageInfo == MessageInfo::ServerRequest) {
             cout << "Received server request" << endl;
             //4. request면 2번째 코드 읽고 switch
@@ -33,21 +33,24 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         else if (messageInfo == MessageInfo::SetHash) {
             cout << "Handle hash : " << (int)messageInfo << endl;
             Handle_PropertyRequest(netMessage);
-            netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);
+            netMessage.SaveStrings();
         }
         else {
             cout << "Received echo message" << endl;
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
-            string message = netMessage.SaveStrings(beginPointOfAMessage, endPointOfAMessage);//end exclusive
-            if (messageInfo == MessageInfo::RPC || messageInfo == MessageInfo::Instantiate
-                || messageInfo == MessageInfo::Destroy || messageInfo == MessageInfo::SyncVar) {
+            string message = netMessage.SaveStrings();//end exclusive
+            if (messageInfo == MessageInfo::RPC 
+                || messageInfo == MessageInfo::Instantiate
+                || messageInfo == MessageInfo::Destroy  
+                //|| messageInfo == MessageInfo::SyncVar
+                ) {
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
                 //저장이 필요한 타입들
                 netMessage.targetViewID = stoi(netMessage.GetNext());
                 BufferedMessages::GetInst()->EnqueueMessage(netMessage.sentActorNr, netMessage.targetViewID, message);
             }
-            netMessage.iterator = endPointOfAMessage;
+            netMessage.SetIteratorToEnd();
         }
     }
 
@@ -87,6 +90,10 @@ void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
         break;
     case LexRequest::ChangeMasterClient:
         Handle_ServerRequest_ChangeMasterClient(netMessage);
+        break;
+
+    case LexRequest::Ping:
+        Handle_ServerRequest_Ping(netMessage);
         break;
     }
 
@@ -160,4 +167,15 @@ void MessageHandler::Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& ne
     if (isLocal) {
         Handle_ServerRequest_SendBufferedRPCs(target);
     }
+}
+void MessageHandler::Handle_ServerRequest_Ping(NetworkMessage& netMessage) {
+    //actorID , MessageInfo , callbackType, params
+    NetworkMessage eolMessage;
+    eolMessage.Append(to_string(netMessage.sentActorNr));
+    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_string((int)LexCallback::Ping_Received));
+    string message = eolMessage.BuildNewSignedMessage();
+    DWORD size = message.length();
+    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    PlayerManager::GetInst()->playerHash[netMessage.sentActorNr]->Send((char*)message.c_str(), size);
 }

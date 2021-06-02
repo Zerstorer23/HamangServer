@@ -18,6 +18,6 @@ public:
 	static void Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_ChangeMasterClient(NetworkMessage& netMessage);
-
+	static void Handle_ServerRequest_Ping(NetworkMessage& netMessage);
 };
 

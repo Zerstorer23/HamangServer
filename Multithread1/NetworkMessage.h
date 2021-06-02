@@ -2,18 +2,23 @@
 #include "Values.h"
 class NetworkMessage
 {
+private:
+	unsigned int iterator;
 public:
 	string broadcastMessage;
-	unsigned int iterator;
 	vector<string> tokens;
 	int count;
 	int sentActorNr;
 	int targetViewID;
+	int beginPoint;
+	int endPoint;
 
 	NetworkMessage() {
 		iterator = 0;
 		tokens = {};
 		count = 0;
+		beginPoint = 0;
+		endPoint = 0;
 	}
 	~NetworkMessage() {
 	
@@ -57,9 +62,9 @@ public:
 		count++;
 	}
 
-	string SaveStrings(int begin, int end) {
+	string SaveStrings() {
 		string message;
-		for (int i = begin; i < end; i++) {
+		for (int i = beginPoint; i < endPoint; i++) {
 			message.append(NET_DELIM);
 			message.append(tokens[i]);
 			count++;
@@ -68,6 +73,15 @@ public:
 
 		cout << "Saved string: " << broadcastMessage << endl;
 		return message;
+	}
+	void SetBeginPoint() {
+		beginPoint = iterator;
+	}
+	void SetEndPoint(int lengthOfMessage) {
+		endPoint = beginPoint + lengthOfMessage;
+	}
+	void SetIteratorToEnd() {
+		iterator = endPoint;
 	}
 
 	bool HasNext() {

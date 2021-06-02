@@ -34,3 +34,4 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 	}
 	ReleaseMutex(hMutex);
 }
+

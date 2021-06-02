@@ -1,10 +1,13 @@
 ﻿  BufferedMessages.cpp
   IOCP_Server.cpp
   MessageHandler.cpp
+D:\VSProjects\HamangServer\Multithread1\MessageHandler.cpp(26,34): error C2065: 'beginPointOfAMessage': 선언되지 않은 식별자입니다.
+D:\VSProjects\HamangServer\Multithread1\MessageHandler.cpp(27,54): error C2065: 'beginPointOfAMessage': 선언되지 않은 식별자입니다.
+D:\VSProjects\HamangServer\Multithread1\MessageHandler.cpp(36,36): error C2065: 'beginPointOfAMessage': 선언되지 않은 식별자입니다.
+D:\VSProjects\HamangServer\Multithread1\MessageHandler.cpp(42,53): error C2065: 'beginPointOfAMessage': 선언되지 않은 식별자입니다.
   NetworkMessage.cpp
   PingManager.cpp
   Player.cpp
   PlayerManager.cpp
   main.cpp
   코드를 생성하고 있습니다...
-  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe

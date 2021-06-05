@@ -7,45 +7,23 @@ class NeworkMessage;
 class BufferedMessages
 {
 private:
-	vector<PRPC> messageQueue;
+	list<PRPC> messageQueue;
 public:
 	HANDLE hMutex;
 	DECLARE_SINGLE(BufferedMessages)
 
 public:
-	void EnqueueMessage(int playerNr, int viewID, string message) {
-		WaitForSingleObject(hMutex, INFINITE);
-		PRPC rpc = new RPC();
-		rpc->playerActorNr = playerNr;
-		rpc->viewID = viewID;
-		rpc->message = message;
-		messageQueue.push_back(rpc);
-		ReleaseMutex(hMutex);
-	}
+	void EnqueueMessage(int playerNr, int viewID, string message);
 	
+	void RemovePlayerNr(int playerNr);
 
-	void RemovePlayerNr(int playerNr) {
-		WaitForSingleObject(hMutex, INFINITE);
-		auto iter = messageQueue.begin();
-		auto iterEnd = messageQueue.end();
-		while (iter != iterEnd) {
-			if ((*iter)->playerActorNr == playerNr) {
-				SAFE_DELETE(*iter);
-				iter = messageQueue.erase(iter);
-			}
-			else {
-				iter++;
-			}
-		}
-		ReleaseMutex(hMutex);
-	}
 	void RemoveViewID(int viewID) {
 		WaitForSingleObject(hMutex, INFINITE);
 		auto iter = messageQueue.begin();
 		auto iterEnd = messageQueue.end();
 		while (iter != iterEnd) {
 			if ((*iter)->viewID == viewID) {
-				SAFE_DELETE(*iter);
+				delete* iter;
 				iter = messageQueue.erase(iter);
 			}
 			else {
@@ -60,7 +38,7 @@ public:
 		auto iterEnd = messageQueue.end();
 		while (iter != iterEnd) {
 			if ((*iter)->viewID == viewID && (*iter)->playerActorNr == playerNr) {
-				SAFE_DELETE(*iter);
+				delete* iter;
 				iter = messageQueue.erase(iter);
 			}
 			else {
@@ -75,10 +53,9 @@ public:
 		auto iter = messageQueue.begin();
 		auto iterEnd = messageQueue.end();
 		while (iter != iterEnd) {
-			//delete* iter;
-			//TODO 동적할당삭제
+			delete* iter;
 			iter = messageQueue.erase(iter);
-		}
+		}//for delete 마지막에clear
 		//messageQueue.erase(remove(messageQueue.begin(), messageQueue.end(),NULL), messageQueue.end());
 		ReleaseMutex(hMutex);
 	}

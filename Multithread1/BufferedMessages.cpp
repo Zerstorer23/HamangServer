@@ -5,7 +5,6 @@
 DEFINITION_SINGLE(BufferedMessages)
 
 BufferedMessages::BufferedMessages() {
-
 	hMutex = CreateMutex(NULL, FALSE, NULL);
 }
 BufferedMessages::~BufferedMessages() {
@@ -13,6 +12,30 @@ BufferedMessages::~BufferedMessages() {
 		SAFE_DELETE(message);
 	}
 }
+void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) {
+	WaitForSingleObject(hMutex, INFINITE);
+	PRPC rpc = new RPC();
+	rpc->playerActorNr = playerNr;
+	rpc->viewID = viewID;
+	rpc->message = message; //스마트포인터 활용 TODO
+	messageQueue.push_back(rpc);
+	ReleaseMutex(hMutex);
+}
+void BufferedMessages::RemovePlayerNr(int playerNr) {
+	WaitForSingleObject(hMutex, INFINITE);
+	auto iter = messageQueue.begin();
+	auto iterEnd = messageQueue.end();
+	while (iter != iterEnd) {
+		if ((*iter)->playerActorNr == playerNr) {
+			delete* iter;
+			iter = messageQueue.erase(iter);
+		}
+		else {
+			iter++;
+		}
+	}
+	ReleaseMutex(hMutex);
+}//게임잡	
 void BufferedMessages::SendBufferedMessages(Player* player)
 {
 	WaitForSingleObject(hMutex, INFINITE);
@@ -34,4 +57,3 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 	}
 	ReleaseMutex(hMutex);
 }
-

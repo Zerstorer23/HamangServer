@@ -42,11 +42,14 @@
     <ClCompile Include="PingManager.cpp">
       <Filter>03 Network</Filter>
     </ClCompile>
-    <ClCompile Include="BufferedMessages.cpp">
+    <ClCompile Include="BufferedMessages_obsolete.cpp">
       <Filter>03 Network</Filter>
     </ClCompile>
     <ClCompile Include="MessageHandler.cpp">
       <Filter>02 Server</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferedMessages.cpp">
+      <Filter>03 Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,11 +77,14 @@
     <ClInclude Include="PingManager.h">
       <Filter>03 Network</Filter>
     </ClInclude>
-    <ClInclude Include="BufferedMessages.h">
+    <ClInclude Include="BufferedMessages_obsolete.h">
       <Filter>03 Network</Filter>
     </ClInclude>
     <ClInclude Include="MessageHandler.h">
       <Filter>02 Server</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferedMessages.h">
+      <Filter>03 Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -9,12 +9,12 @@ BufferedMessages::BufferedMessages() {
 }
 BufferedMessages::~BufferedMessages() {
 	for (auto message : messageQueue) {
-		SAFE_DELETE(message);
+		message.reset();
 	}
 }
 void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) {
 	WaitForSingleObject(hMutex, INFINITE);
-	PRPC rpc = new RPC();
+	shared_ptr<RPC>  rpc(new RPC());
 	rpc->playerActorNr = playerNr;
 	rpc->viewID = viewID;
 	rpc->message = message; //스마트포인터 활용 TODO
@@ -27,7 +27,7 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
 		if ((*iter)->playerActorNr == playerNr) {
-			delete* iter;
+			iter->reset();
 			iter = messageQueue.erase(iter);
 		}
 		else {
@@ -36,6 +36,49 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 	}
 	ReleaseMutex(hMutex);
 }//게임잡	
+void BufferedMessages::RemoveViewID(int viewID) {
+	WaitForSingleObject(hMutex, INFINITE);
+	auto iter = messageQueue.begin();
+	auto iterEnd = messageQueue.end();
+	while (iter != iterEnd) {
+		if ((*iter)->viewID == viewID) {
+			iter->reset();
+			iter = messageQueue.erase(iter);
+		}
+		else {
+			iter++;
+		}
+	}
+	ReleaseMutex(hMutex);
+}
+void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
+	WaitForSingleObject(hMutex, INFINITE);
+	auto iter = messageQueue.begin();
+	auto iterEnd = messageQueue.end();
+	while (iter != iterEnd) {
+		if ((*iter)->viewID == viewID && (*iter)->playerActorNr == playerNr) {
+			iter->reset();
+			iter = messageQueue.erase(iter);
+		}
+		else {
+			iter++;
+		}
+	}
+	ReleaseMutex(hMutex);
+
+}
+void BufferedMessages::RemoveAll() {
+	WaitForSingleObject(hMutex, INFINITE);
+	auto iter = messageQueue.begin();
+	auto iterEnd = messageQueue.end();
+	while (iter != iterEnd) {
+		cout << iter->use_count() << endl;
+		iter->reset();
+		iter = messageQueue.erase(iter);
+	}//for delete 마지막에clear
+	//messageQueue.erase(remove(messageQueue.begin(), messageQueue.end(),NULL), messageQueue.end());
+	ReleaseMutex(hMutex);
+}
 void BufferedMessages::SendBufferedMessages(Player* player)
 {
 	WaitForSingleObject(hMutex, INFINITE);

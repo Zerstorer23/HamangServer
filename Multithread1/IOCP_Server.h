@@ -83,7 +83,6 @@ public:
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];
-		cout << "Copy size " << bufferSize << " to " << BUFFER << endl;
 		memcpy(cloneIO->buffer, original, bufferSize);//
 		cloneIO->wsaBuf.len = bufferSize;
 		cloneIO->wsaBuf.buf = cloneIO->buffer;//
@@ -115,6 +114,11 @@ public:
 	void SetProperty(string key, string value) {
 		WaitForSingleObject(propertyMutex, INFINITE);
 		serverCustomProperty.insert_or_assign(key, value);
+		ReleaseMutex(propertyMutex);
+	}
+	void RemoveAllProperties() {
+		WaitForSingleObject(propertyMutex, INFINITE);
+		serverCustomProperty.clear();
 		ReleaseMutex(propertyMutex);
 	}
 

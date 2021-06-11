@@ -10,6 +10,8 @@ int main()
     IOCP_Server * myServer =IOCP_Server::GetInst();
     PlayerManager* playerManager = PlayerManager::GetInst();
     PingManager* pingManager = PingManager::GetInst();
+   // pingManager->TimeCheck();
+
     BufferedMessages* messageBuffer = BufferedMessages::GetInst();
     myServer->InitialiseServer(ip, port);
     myServer->OpenServer();

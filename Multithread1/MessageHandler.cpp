@@ -16,6 +16,7 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         string signature = netMessage.GetNext();
         bool isMyPacket = (signature.compare(NET_SIG) == 0);
         if (!isMyPacket) continue;
+        netMessage.PrintOut();
 
         //2. 메세지 길이 읽기
         int lengthOfMessages = stoi(netMessage.GetNext());
@@ -24,19 +25,20 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         //4. 메세지 타입 읽기
         MessageInfo messageInfo = (MessageInfo)stoi(netMessage.GetNext());
         netMessage.SetEndPoint(lengthOfMessages);
-        cout << signature << "Is my packet from " << netMessage.beginPoint << " to " << netMessage.endPoint << endl;
+       // cout << signature << "Is my packet from " << netMessage.beginPoint << " to " << netMessage.endPoint << endl;
         if (messageInfo == MessageInfo::ServerRequest) {
-            cout << "Received server request" << endl;
+           // cout << "Received server request" << endl;
             //4. request면 2번째 코드 읽고 switch
             Handle_ServerRequest(netMessage);
+            //방송처리는 각자해야함
         }
         else if (messageInfo == MessageInfo::SetHash) {
-            cout << "Handle hash : " << (int)messageInfo << endl;
+         //   cout << "Handle hash : " << (int)messageInfo << endl;
             Handle_PropertyRequest(netMessage);
             netMessage.SaveStrings();
         }
         else {
-            cout << "Received echo message" << endl;
+        //    cout << "Received echo message" << endl;
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
             string message = netMessage.SaveStrings();//end exclusive
@@ -52,6 +54,8 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
             }
             netMessage.SetIteratorToEnd();
         }
+        cout << endl;
+        cout << endl;
     }
 
 
@@ -63,7 +67,6 @@ void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
     //SetHash면 서버 Hash도 업데이트 필요
     //actorNum, SetHash [int]roomOrPlayer [string]Key [object]value
     int target = stoi(netMessage.GetNext());
-    cout << "Set hash on " << endl;
     string key = netMessage.GetNext();
     string value = netMessage.GetNext();
     if (target == 0) {
@@ -91,7 +94,6 @@ void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
     case LexRequest::ChangeMasterClient:
         Handle_ServerRequest_ChangeMasterClient(netMessage);
         break;
-
     case LexRequest::Ping:
         Handle_ServerRequest_Ping(netMessage);
         break;
@@ -143,7 +145,6 @@ void MessageHandler::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage)
     int viewID = stoi(netMessage.GetNext());
     if (actorID != -1) {
         if (viewID != -1) {
-
             BufferedMessages::GetInst()->RemoveRPC(actorID, viewID);
         }
         else {
@@ -157,14 +158,12 @@ void MessageHandler::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage)
 }
 void MessageHandler::Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage)
 {
-    //LEX / 0 =SERVER / PING=MESSAGEINFO / targetPlater /1 OR 0 = INDEX TO REFER / SERVERTIME or EXPECTEDDELAY //Part of local Join
-    int targetPlayerNumber = stoi(netMessage.GetNext());
-    int isMod = stoi(netMessage.GetNext());//always 1
-    (netMessage.GetNext());
-    int isLocal = stoi(netMessage.GetNext());
+    //LEX / int: sentPlayer / MsgIngo: ServerRequest / ReqInfo : modify time / bool: requestRPC
+    int targetPlayerNumber = netMessage.sentActorNr;
+    int requestRPC = stoi(netMessage.GetNext());
     Player* target = PlayerManager::GetInst()->playerHash[targetPlayerNumber];
-    PingManager::GetInst()->Handle_Request_TimeSynch(target, isMod, isLocal);
-    if (isLocal) {
+    PingManager::GetInst()->TimeSynch_Receive(target);
+    if (requestRPC) {
         Handle_ServerRequest_SendBufferedRPCs(target);
     }
 }

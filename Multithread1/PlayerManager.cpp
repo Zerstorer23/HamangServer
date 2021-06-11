@@ -1,6 +1,7 @@
 #include "PlayerManager.h"
 #include "Player.h"
 #include "NetworkMessage.h"
+#include "IOCP_Server.h"
 DEFINITION_SINGLE(PlayerManager)
 PlayerManager::PlayerManager() {
 		masterPlayer = nullptr;
@@ -34,11 +35,28 @@ Player* PlayerManager::CreatePlayer(LPPER_HANDLE_DATA handleInfo)
 void PlayerManager::SetMasterClient(int newMaster) {
 	WaitForSingleObject(hMutex, INFINITE);
 	if (masterPlayer) {
-
 		masterPlayer->isMasterClient = false;
 	}
 	playerHash[newMaster]->isMasterClient = true;
 	masterPlayer = playerHash[newMaster];
+	ReleaseMutex(hMutex);
+};
+void PlayerManager::ChangeMasterClientOnDisconnect() {
+	WaitForSingleObject(hMutex, INFINITE);
+	cout << "Changing master on disconnect" << endl;
+	masterPlayer = GetFirstPlayer();
+	masterPlayer->isMasterClient = true;   
+	
+	NetworkMessage eolMessage;
+	eolMessage.Append("0");
+	eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
+	eolMessage.Append(to_string((int)LexCallback::MasterClientChanged));
+	eolMessage.Append(to_string(masterPlayer->actorNumber));
+	string message = eolMessage.BuildNewSignedMessage();
+	DWORD size = message.length();
+	LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+	PlayerManager::GetInst()->BroadcastMessageAll((char*)message.c_str(), size);
+
 	ReleaseMutex(hMutex);
 };
 

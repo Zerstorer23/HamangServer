@@ -23,7 +23,12 @@ public:
 	void PrintPlayers();
 	void SetMasterClient(int newMaster);
 	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage);
-	
+
+	void ChangeMasterClientOnDisconnect();
+	Player* GetFirstPlayer() {
+		return playerHash.begin()->second;
+	}
+
 	int GetPlayerCount() {
 		return playerHash.size();
 	}

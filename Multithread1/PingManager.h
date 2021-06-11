@@ -1,9 +1,9 @@
 #pragma once
 #include "Values.h"
 typedef struct {
-	bool received;
-	long long  lastSentTime;
-	long long  elapsedTime;
+	//bool received;
+	long long lastSentTime;
+	//long long elapsedTime;
 } PingRecord, * P_PingRecord;
 class IOCP_Server;
 class NetworkMessage;
@@ -12,7 +12,7 @@ class PlayerManager;
 class PingManager
 {
 private:
-	unordered_map<int,P_PingRecord> pingRecords;
+	unordered_map<int,long long> pingRecords;
 	long long  serverTime;//keeps onincrementing
 
 	static PingManager* instance;
@@ -38,32 +38,31 @@ public:
 	{
 		serverTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	}
+	long long GetTimeNow() {
+		UpdateTime();
+		return serverTime;
+	}
 	//호스트 제외 플레이어당 4회씩 핑체크후 평균 / 2
 
-	void RecordPing_Send(int player, long long timeSent) {
-		P_PingRecord ping = new PingRecord();
-		ping->lastSentTime = timeSent;
-		ping->received = false; 
-		pingRecords[player]=ping;
+	void RecordPing(int player, long long timeSent) {
+	//	P_PingRecord ping = new PingRecord();
+		//ping->lastSentTime = timeSent;
+		//ping->received = false; 
+		pingRecords[player]= timeSent;
+		cout << "Init Time" << timeSent << endl;
 	}
-	void TimeSynch_Receive(Player* player,int requestBufferedRPCs);
-
 	long long  CurrentTimeInMills() {
 		return  duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	}
 	void TimeCheck() {
 		for (int i = 0; i < 10; i++) {
-			auto millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-			auto sec_since_epoch = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
-
-			cout << "seconds since epoch: " << sec_since_epoch << endl;
-			cout << "milliseconds since epoch: " << millisec_since_epoch << endl;
-
-			this_thread::sleep_for(std::chrono::milliseconds(100));
+			cout << "ServerTime: " << GetTimeNow() << endl;
+			this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 		return ;
 	}
-	void Handle_Request_TimeSynch(Player* targetPlayer, int isModification, int requestBufferedRPCs);
-	void PushServerTimeToPlayer(Player* player, int isModification, long long timeValue, int requestBufferedRPCs);
+	void TimeSynch_Receive(Player* player);
+
+	void TimeSync_Send(Player* player, long long timeValue);
 };
 

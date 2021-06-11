@@ -34,7 +34,7 @@ public:
 			string substring = str.substr(previous, current - previous);
 			if (substring.empty()) continue;// __#_#___# <-마지막 캐릭터 empty 스킵
 			x.push_back(substring);
-			cout << substring << endl;
+			//cout << substring << endl;
 			previous = current + 1;
 			current = (int)str.find(delim, previous);
 		}
@@ -63,6 +63,7 @@ public:
 	}
 
 	string SaveStrings() {
+		//자신제외 방송용.
 		string message;
 		for (int i = beginPoint; i < endPoint; i++) {
 			message.append(NET_DELIM);
@@ -70,7 +71,6 @@ public:
 			count++;
 		}
 		broadcastMessage.append(message);
-
 		cout << "Saved string: " << broadcastMessage << endl;
 		return message;
 	}
@@ -100,6 +100,65 @@ public:
 		//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
 		//서버에서 새로 생성된 메세지용
 		return "#LEX#"+ to_string(count+2)+ broadcastMessage;
+	}
+	void PrintOut() {
+		cout <<"==============================="<<endl;
+		int iter = beginPoint;
+		int initial = beginPoint;
+		iter++;
+		int length = stoi(tokens[iter++]);
+		string sentActor = tokens[iter++];
+		MessageInfo msgInfo = (MessageInfo)stoi(tokens[iter++]);
+		cout << sentActor << " : " << MsgInfoToString(msgInfo);
+		if (msgInfo == MessageInfo::ServerRequest) {
+			LexRequest reqInfo = (LexRequest)stoi(tokens[iter++]);
+			cout << " - " << ReqInfoToString(reqInfo);
+		}
+		while (iter < initial + length) {
+			cout << " " << tokens[iter++];
+		}
+		cout <<endl;
+
+	}
+
+	static string MsgInfoToString(MessageInfo info) {
+		switch (info)
+		{
+		case MessageInfo::ServerRequest:
+			return "Server Request";
+		case MessageInfo::RPC:
+			return "RPC";
+		case MessageInfo::SyncVar:
+			return "SyncVar";
+		case MessageInfo::Chat:
+			return "Chat";
+		case MessageInfo::Instantiate:
+			return "Instantiate";
+		case MessageInfo::Destroy:
+			return "Destroy";
+		case MessageInfo::SetHash:
+			return "SetHash";
+		case MessageInfo::ServerCallbacks:
+			return "ServerCallbacks";
+		default:
+			return "?";
+		}
+	
+	}
+	static string ReqInfoToString(LexRequest info) {
+		switch (info)
+		{
+		case LexRequest::RemoveRPC:
+			return "RemoveRPC";
+		case LexRequest::ChangeMasterClient:
+			return "ChangeMasterClient";
+		case LexRequest::Receive_modifiedTime:
+			return "Receive_modifiedTime";
+		case LexRequest::Ping:
+			return "Ping";
+		default:
+			return "?";
+		}
 	}
 };
 

@@ -68,7 +68,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     while (true) {
         GetQueuedCompletionStatus(hCompletionPort, &bytesReceived, (PULONG_PTR)&handleInfo, (LPOVERLAPPED*)&receivedIO, INFINITE);
         Player * sourcePlayer = handleInfo->player;
-        cout << "Bytes received " << bytesReceived << endl;
+     //   cout << "Bytes received " << bytesReceived << endl;
         clientSocket = handleInfo->clientSocket;
         if (receivedIO->rwMode == READ) {
             if (bytesReceived == 0) {//종료
@@ -85,7 +85,8 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             messageHandler.HandleMessage(netMessage);
             if (netMessage.HasMessageToBroadcast()) {
                 string msg = netMessage.BuildCopiedMessage();
-                PlayerManager::GetInst()->BroadcastMessageAll((char *)msg.c_str(), bytesReceived);
+                //PlayerManager::GetInst()->BroadcastMessageAll((char *)msg.c_str(), bytesReceived);
+                PlayerManager::GetInst()->BroadcastMessage(sourcePlayer->actorNumber, (char*)msg.c_str(), bytesReceived);
             }
 
             // 다시 읽기모드로 재활용
@@ -115,22 +116,27 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
     netMessage.Append(to_string((int)LexCallback::RoomInformationReceived));
     EncodeServerToNetwork(netMessage);
-    //Players
+    //3. 다른플레이어 정보 추가
     PlayerManager::GetInst()->EncodePlayersToNetwork(player, netMessage);
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
+    
+    //4. 서버 현재시간 추가
+    long long time = PingManager::GetInst()->GetTimeNow();
+    PingManager::GetInst()->RecordPing(player->actorNumber, time);
+    netMessage.Append(to_string(time));
+
+    //5. 전송
     string message = netMessage.BuildNewSignedMessage();
     LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
     player->Send(roomInformationPacket);
 
-    //3 시간 동기화 1차전송
-    PingManager::GetInst()->Handle_Request_TimeSynch(player, 0, 1);
 }
 
 void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_DATA handleInfo, Player * sourcePlayer)
 {
     PlayerManager* playerManager = PlayerManager::GetInst();
-    cout << "Disconnect Client" << endl;
     int disconnPlayer = sourcePlayer->actorNumber;
+    bool isMaster = sourcePlayer->isMasterClient;
     SAFE_DELETE(handleInfo)
     SAFE_DELETE(receivedIO->buffer)
     SAFE_DELETE(receivedIO)
@@ -147,7 +153,11 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
 
     if (playerManager->GetPlayerCount() == 0) {
         BufferedMessages::GetInst()->RemoveAll();
+        GetInst()->RemoveAllProperties();
+    }else if (isMaster) {
+        playerManager->ChangeMasterClientOnDisconnect();
     }
+    cout << "Disconnect Client "<< disconnPlayer<< " / remain "<< playerManager->GetPlayerCount() << endl;
 }
 
 
@@ -161,6 +171,4 @@ void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
 void IOCP_Server::ResetServer() {
     BufferedMessages::GetInst()->RemoveAll();
     serverCustomProperty.clear();
-
-
 }

@@ -23,6 +23,7 @@ void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) 
 }
 void BufferedMessages::RemovePlayerNr(int playerNr) {
 	WaitForSingleObject(hMutex, INFINITE);
+	cout << "playerNr 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
@@ -34,10 +35,12 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 			iter++;
 		}
 	}
+	cout << "RPC크기 " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }//게임잡	
 void BufferedMessages::RemoveViewID(int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
+	cout << "viewID 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
@@ -49,10 +52,12 @@ void BufferedMessages::RemoveViewID(int viewID) {
 			iter++;
 		}
 	}
+	cout << "RPC크기 " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
+	cout << "player viewID 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
@@ -64,19 +69,22 @@ void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
 			iter++;
 		}
 	}
+	cout << "RPC크기 " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 
 }
 void BufferedMessages::RemoveAll() {
 	WaitForSingleObject(hMutex, INFINITE);
+	cout << "전체삭제 시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
-		cout << iter->use_count() << endl;
+		//cout << iter->use_count() << endl;
 		iter->reset();
 		iter = messageQueue.erase(iter);
 	}//for delete 마지막에clear
 	//messageQueue.erase(remove(messageQueue.begin(), messageQueue.end(),NULL), messageQueue.end());
+	cout <<"RPC크기 "<< messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::SendBufferedMessages(Player* player)

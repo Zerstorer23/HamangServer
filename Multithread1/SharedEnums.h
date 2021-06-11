@@ -12,7 +12,7 @@ enum class LexCallback
     None, PlayerJoined, PlayerDisconnected, OnLocalPlayerJoined, MasterClientChanged,
     HashChanged,
     Disconnected,
-    PushServerTime,
+    ModifyServerTime,
     RoomInformationReceived
     , Ping_Received
 };

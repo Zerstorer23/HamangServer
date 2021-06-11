@@ -1,5 +1,6 @@
 #include "PingManager.h"
 #include "NetworkMessage.h"
+#include "BufferedMessages.h"
 #include "PlayerManager.h"
 #include "IOCP_Server.h"
 #include "Player.h"
@@ -16,47 +17,39 @@ PingManager::~PingManager()
 {
 }
 
-void PingManager::TimeSynch_Receive(Player* player, int requestBufferedRPCs)
+void PingManager::TimeSynch_Receive(Player* player)
 {
-	UpdateTime();
-	P_PingRecord ping = pingRecords[player->actorNumber];
-	assert(!ping->received);
-	ping->elapsedTime = serverTime - ping->lastSentTime;
-	ping->received = true;
-	cout << "Latency with player " << player->actorNumber << "\t " << (ping->elapsedTime / 2)<<"//server"<< serverTime << endl;
-	PushServerTimeToPlayer(player, 1, ping->elapsedTime / 2, requestBufferedRPCs);//편도거리 0.5
-	SAFE_DELETE(ping);
+	long long timeNow = GetTimeNow();
+	long long lastSentTime = pingRecords[player->actorNumber];
+	long long elapsedTime = timeNow - lastSentTime;//갔다오는데 걸린시간
+	long long oneWayPing = elapsedTime * 0.5; //가는데 걸릴시간
+	pingRecords[player->actorNumber] = timeNow;
+	cout << "Latency with player " << player->actorNumber << "\t " << oneWayPing <<"//server"<< serverTime << endl;
+	TimeSync_Send(player, oneWayPing);//편도거리 0.5
 }
+/*
 
+ ?		0		1		(2+1)=3		4
+	init	             1받음
+ 0		1		2		3			4
+			  1차받음
+			  편도차이=1
+*/
 
-void PingManager::Handle_Request_TimeSynch(Player * targetPlayer, int isModification, int requestBufferedRPCs)
+void PingManager::TimeSync_Send(Player * player, long long timeValue)
 {
-	UpdateTime();
-	if (isModification == 0) {
-		PushServerTimeToPlayer(targetPlayer, 0, serverTime, requestBufferedRPCs);
-	}
-	else {
-		TimeSynch_Receive(targetPlayer, requestBufferedRPCs);
-
-	}
-}
-
-void PingManager::PushServerTimeToPlayer(Player * player, int isModification, long long timeValue, int requestBufferedRPCs)
-{
-	//LEX / 0 =SERVER / PING=MESSAGEINFO / targetPlater /1 OR 0 = INDEX TO REFER / SERVERTIME or EXPECTEDDELAY
+	//LEX / 0 =SERVER / PING=MESSAGEINFO / targetPlater / modifiedTime
 	NetworkMessage netMessage;
 	netMessage.Append("0");
 	netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-	netMessage.Append(to_string((int)LexCallback::PushServerTime));
+	netMessage.Append(to_string((int)LexCallback::ModifyServerTime));
 	netMessage.Append(to_string(player->actorNumber));
-	netMessage.Append(to_string(isModification));
 	netMessage.Append(to_string(timeValue));
-	netMessage.Append(to_string(requestBufferedRPCs));
 	string message = netMessage.BuildNewSignedMessage();
 	DWORD bytesSent =(DWORD) message.length();
 	player->Send((char*)message.c_str(), bytesSent);
-	RecordPing_Send(player->actorNumber, timeValue);
 	cout << "Push Time" << timeValue << endl;
+
 }
 
 

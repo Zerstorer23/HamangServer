@@ -18,7 +18,11 @@ void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) 
 	rpc->playerActorNr = playerNr;
 	rpc->viewID = viewID;
 	rpc->message = message; //스마트포인터 활용 TODO
+	//auto a = rpc; // 카운트2
+
 	messageQueue.push_back(rpc);
+//unique는 user count 1 이상 불가..
+
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::RemovePlayerNr(int playerNr) {

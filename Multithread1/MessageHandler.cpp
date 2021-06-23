@@ -35,7 +35,7 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         else if (messageInfo == MessageInfo::SetHash) {
          //   cout << "Handle hash : " << (int)messageInfo << endl;
             Handle_PropertyRequest(netMessage);
-            netMessage.SaveStrings();
+            netMessage.SaveStrings(); //TODO ºÒÇÊ¿ä
         }
         else {
         //    cout << "Received echo message" << endl;

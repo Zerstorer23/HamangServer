@@ -150,6 +150,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="BufferedMessages.cpp" />
+    <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="IOCP_Server.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MessageHandler.cpp" />
@@ -166,6 +167,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="BufferedMessages.h" />
+    <ClInclude Include="HashTable.h" />
     <ClInclude Include="IOCP_Server.h" />
     <ClInclude Include="MessageHandler.h" />
     <ClInclude Include="NetworkMessage.h" />

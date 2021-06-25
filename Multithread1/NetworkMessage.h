@@ -102,16 +102,17 @@ public:
 		return "#LEX#"+ to_string(count+2)+ broadcastMessage;
 	}
 	void PrintOut() {
-		cout <<"==============================="<<endl;
 		int iter = beginPoint;
 		int initial = beginPoint;
 		iter++;
 		int length = stoi(tokens[iter++]);
 		string sentActor = tokens[iter++];
 		MessageInfo msgInfo = (MessageInfo)stoi(tokens[iter++]);
-		cout << sentActor << " : " << MsgInfoToString(msgInfo);
 		if (msgInfo == MessageInfo::ServerRequest) {
 			LexRequest reqInfo = (LexRequest)stoi(tokens[iter++]);
+			if (reqInfo == LexRequest::Ping) return;
+			cout << "===============================" << endl;
+			cout << sentActor << " : " << MsgInfoToString(msgInfo);
 			cout << " - " << ReqInfoToString(reqInfo);
 		}
 		while (iter < initial + length) {

@@ -5,8 +5,20 @@
 #include "BufferedMessages.h"
 #include "PingManager.h"
 #include "MessageHandler.h"
+#include "HashTable.h"
 IOCP_Server* IOCP_Server::serverInstance = NULL;
 MessageHandler IOCP_Server::messageHandler;
+IOCP_Server::IOCP_Server() 
+{
+    hCompletionPort = {};
+    serverAddress = {};
+    sysInfo = {};
+    wsaData = {};
+    serverSocket = {};
+    shared_ptr<HashTable>  cp(new HashTable());
+    customProperty = cp;
+};
+
 void IOCP_Server::OpenServer()
 {
     //1. CP오브젝트 생성. 마지막인자 0 -> 코어의 수만큼 cp오브젝트에 스레드를 할당
@@ -115,7 +127,7 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     netMessage.Append("-1");
     netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
     netMessage.Append(to_string((int)LexCallback::RoomInformationReceived));
-    EncodeServerToNetwork(netMessage);
+    customProperty->EncodeToNetwork(netMessage);
     //3. 다른플레이어 정보 추가
     PlayerManager::GetInst()->EncodePlayersToNetwork(player, netMessage);
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
@@ -153,7 +165,7 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
 
     if (playerManager->GetPlayerCount() == 0) {
         BufferedMessages::GetInst()->RemoveAll();
-        GetInst()->RemoveAllProperties();
+        GetInst()->customProperty->RemoveAllProperties();
     }else if (isMaster) {
         playerManager->ChangeMasterClientOnDisconnect();
     }
@@ -161,14 +173,14 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
 }
 
 
-void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
-    netMessage.Append(to_string(serverCustomProperty.size()));
-    for (auto entry : serverCustomProperty) {
-        netMessage.Append(entry.first);
-        netMessage.Append(entry.second);
-    }
-}
+//void IOCP_Server::EncodeServerToNetwork(NetworkMessage& netMessage) {
+//    netMessage.Append(to_string(serverCustomProperty.size()));
+//    for (auto entry : serverCustomProperty) {
+//        netMessage.Append(entry.first);
+//        netMessage.Append(entry.second);
+//    }
+//}
 void IOCP_Server::ResetServer() {
     BufferedMessages::GetInst()->RemoveAll();
-    serverCustomProperty.clear();
+    customProperty->RemoveAllProperties();
 }

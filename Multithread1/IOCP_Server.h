@@ -6,6 +6,7 @@ class PlayerManager;
 class PingManager;
 class BufferedMessages;
 class MessageHandler;
+class HashTable;
 class IOCP_Server
 {
 private:
@@ -22,9 +23,7 @@ public:
 	SOCKET serverSocket;
 	SOCKADDR_IN serverAddress;
 
-
-	HANDLE propertyMutex;
-	unordered_map<string,string> serverCustomProperty;
+	shared_ptr<HashTable> customProperty;
 
 	static MessageHandler messageHandler;
 
@@ -43,20 +42,12 @@ public:
 		SAFE_DELETE(serverInstance);
 	}
 private:
-	IOCP_Server() {
-		hCompletionPort = {};
-		propertyMutex = {};
-		serverAddress = {};
-		sysInfo = {};
-		wsaData = {};
-		serverSocket = {};
-	};
+	IOCP_Server();
 	~IOCP_Server() {
 	};
 public:
 	void InitialiseServer(string ip, string port) {
 		WSADATA wsaData;
-		propertyMutex = CreateMutex(NULL, FALSE, NULL);
 		ipAddress = ip;
 		portNumber = port;
 
@@ -111,39 +102,10 @@ public:
 		inet_pton(AF_INET, ip_addr, &(servAddr.sin_addr.s_addr));
 		servAddr.sin_port = htons(atoi(port));
 	}
-	void SetProperty(string key, string value) {
-		WaitForSingleObject(propertyMutex, INFINITE);
-		serverCustomProperty.insert_or_assign(key, value);
-		ReleaseMutex(propertyMutex);
-	}
-	void RemoveAllProperties() {
-		WaitForSingleObject(propertyMutex, INFINITE);
-		serverCustomProperty.clear();
-		ReleaseMutex(propertyMutex);
-	}
 
-	void PrintProperties() {
-		cout << endl;
-		for (auto entry : serverCustomProperty) {
-			cout << "Server |\t" << entry.first << "|\t" << entry.second << endl;
-		}
-	}
 
 	static unsigned WINAPI EchoThreadMain(LPVOID CompletionPortIO);
 	static void Append(string& s, string& broadcastString);
-
-
-
-	string EncodeServerToNetwork() {
-		string message = NET_DELIM;
-		message = message.append(to_string(serverCustomProperty.size()));
-		for (auto entry : serverCustomProperty) {
-			message = message.append(NET_DELIM).append(entry.first).append(NET_DELIM).append(entry.second);
-		}
-		cout << "Room: " << message << endl;
-		return message;
-	}
-	void EncodeServerToNetwork(NetworkMessage& netMessage);
 	
 	void SetSocketSize(SOCKET& socket) {
 		int bufSize = BUFFER;

@@ -20,7 +20,7 @@ Player* PlayerManager::CreatePlayer(LPPER_HANDLE_DATA handleInfo)
 	WaitForSingleObject(hMutex, INFINITE);
 	Player* player = new Player();
 	player->handleInfo = handleInfo;
-	player->actorNumber = nextActorNumber;
+	player->SetActorNumber(nextActorNumber);
 	player->isMasterClient = (playerHash.size() == 0);
 	if (player->isMasterClient) {
 		masterPlayer = player;

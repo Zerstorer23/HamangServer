@@ -51,6 +51,9 @@
     <ClCompile Include="BufferedMessages.cpp">
       <Filter>03 Network</Filter>
     </ClCompile>
+    <ClCompile Include="HashTable.cpp">
+      <Filter>02 Server</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Values.h">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="BufferedMessages.h">
       <Filter>03 Network</Filter>
+    </ClInclude>
+    <ClInclude Include="HashTable.h">
+      <Filter>02 Server</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

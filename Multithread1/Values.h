@@ -68,6 +68,8 @@ typedef struct {
 	string message;
 }RPC, * PRPC;
 
+
+
 /*
 1. 모든 cpp는 메인 헤더
 2. 자기 cpp는 자기 헤더

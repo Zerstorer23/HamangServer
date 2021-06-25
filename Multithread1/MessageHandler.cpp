@@ -6,6 +6,7 @@
 #include "BufferedMessages.h"
 #include "PingManager.h"
 #include "MessageHandler.h"
+#include "HashTable.h"
 
 
 void MessageHandler::HandleMessage(NetworkMessage& netMessage)
@@ -67,15 +68,19 @@ void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
     //SetHash면 서버 Hash도 업데이트 필요
     //actorNum, SetHash [int]roomOrPlayer [string]Key [object]value
     int target = stoi(netMessage.GetNext());
-    string key = netMessage.GetNext();
-    string value = netMessage.GetNext();
-    if (target == 0) {
-        IOCP_Server::GetInst()->SetProperty(key, value);
-        IOCP_Server::GetInst()->PrintProperties();
-    }
-    else {
-        PlayerManager::GetInst()->playerHash[target]->SetProperty(key, value);
-        PlayerManager::GetInst()->playerHash[target]->PrintProperties();
+    int numHash = stoi(netMessage.GetNext());
+    for (int i = 0; i < numHash; i++) {
+        string key = netMessage.GetNext();
+        string typeName = netMessage.GetNext();
+        string value = netMessage.GetNext();
+        if (target == 0) {
+            IOCP_Server::GetInst()->customProperty->SetProperty(key, typeName, value);
+            IOCP_Server::GetInst()->customProperty->PrintProperties();
+        }
+        else {
+            PlayerManager::GetInst()->playerHash[target]->customProperty->SetProperty(key, typeName, value);
+            PlayerManager::GetInst()->playerHash[target]->customProperty->PrintProperties();
+        }
     }
 }
 void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)

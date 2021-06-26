@@ -14,6 +14,9 @@
 #include <ctime>
 #include <algorithm> // remove and remove_if
 #include <thread>
+#include <wchar.h>
+#include <locale>
+#include <locale.h>
 
 using namespace std;
 using chrono::duration_cast;
@@ -65,7 +68,7 @@ typedef struct {
 typedef struct {
 	int playerActorNr;
 	int viewID;
-	string message;
+	wstring message;
 }RPC, * PRPC;
 
 

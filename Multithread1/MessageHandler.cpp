@@ -14,7 +14,7 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
     while (netMessage.HasNext()) {
         netMessage.SetBeginPoint();
         //1. Check signature
-        string signature = netMessage.GetNext();
+        wstring signature = netMessage.GetNext();
         bool isMyPacket = (signature.compare(NET_SIG) == 0);
         if (!isMyPacket) continue;
         netMessage.PrintOut();
@@ -36,13 +36,12 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         else if (messageInfo == MessageInfo::SetHash) {
          //   cout << "Handle hash : " << (int)messageInfo << endl;
             Handle_PropertyRequest(netMessage);
-            netMessage.SaveStrings(); //TODO 불필요
         }
         else {
         //    cout << "Received echo message" << endl;
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
-            string message = netMessage.SaveStrings();//end exclusive
+            wstring message = netMessage.SaveStrings();//end exclusive
             if (messageInfo == MessageInfo::RPC 
                 || messageInfo == MessageInfo::Instantiate
                 || messageInfo == MessageInfo::Destroy  
@@ -51,6 +50,7 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
                 //저장이 필요한 타입들
                 netMessage.targetViewID = stoi(netMessage.GetNext());
+                wcout << L"RPC Saved " << message << endl;
                 BufferedMessages::GetInst()->EnqueueMessage(netMessage.sentActorNr, netMessage.targetViewID, message);
             }
             netMessage.SetIteratorToEnd();
@@ -70,9 +70,9 @@ void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
     int target = stoi(netMessage.GetNext());
     int numHash = stoi(netMessage.GetNext());
     for (int i = 0; i < numHash; i++) {
-        string key = netMessage.GetNext();
-        string typeName = netMessage.GetNext();
-        string value = netMessage.GetNext();
+        wstring key = netMessage.GetNext();
+        wstring typeName = netMessage.GetNext();
+        wstring value = netMessage.GetNext();
         if (target == 0) {
             IOCP_Server::GetInst()->customProperty->SetProperty(key, typeName, value);
             IOCP_Server::GetInst()->customProperty->PrintProperties();
@@ -82,6 +82,7 @@ void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
             PlayerManager::GetInst()->playerHash[target]->customProperty->PrintProperties();
         }
     }
+    netMessage.SaveStrings(); //TODO 불필요
 }
 void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
 {
@@ -111,37 +112,36 @@ void MessageHandler::Handle_ServerRequest_ChangeMasterClient(NetworkMessage& net
     int newMasterActor = stoi(netMessage.GetNext());
     PlayerManager::GetInst()->SetMasterClient(newMasterActor);
     NetworkMessage eolMessage;
-    eolMessage.Append(to_string(netMessage.sentActorNr));
-    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    eolMessage.Append(to_string((int)LexCallback::MasterClientChanged));
-    eolMessage.Append(to_string(newMasterActor));
-    string message = eolMessage.BuildNewSignedMessage();
-    DWORD size = message.length();
-    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
-    PlayerManager::GetInst()->BroadcastMessageAll((char*)message.c_str(), size);
+    eolMessage.Append(to_wstring(netMessage.sentActorNr));
+    eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_wstring((int)LexCallback::MasterClientChanged));
+    eolMessage.Append(to_wstring(newMasterActor));
+    wstring message = eolMessage.BuildNewSignedMessage();
+   // DWORD size = message.length();
+   // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    PlayerManager::GetInst()->BroadcastMessageAll(message);
 }
 void MessageHandler::Handle_ServerRequest_SendBufferedRPCs(Player* target) {
     BufferedMessages::GetInst()->SendBufferedMessages(target);
 
     NetworkMessage eolMessage;
-    eolMessage.Append(to_string(target->actorNumber));
-    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    eolMessage.Append(to_string((int)LexCallback::OnLocalPlayerJoined));
-    string message = eolMessage.BuildNewSignedMessage();
-    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
-    target->Send(sendIO);
+    eolMessage.Append(to_wstring(target->actorNumber));
+    eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_wstring((int)LexCallback::OnLocalPlayerJoined));
+    wstring message = eolMessage.BuildNewSignedMessage();
+   // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    target->Send(message);
     cout << "Sent buffered RPCs" << endl;
 
     //actorID , MessageInfo , callbackType, params
 // PlayerJoined는 로컬제외 전체방송
     NetworkMessage broadcastMessage;
-    broadcastMessage.Append("-1");
-    broadcastMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    broadcastMessage.Append(to_string((int)LexCallback::PlayerJoined));
+    broadcastMessage.Append(L"-1");
+    broadcastMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+    broadcastMessage.Append(to_wstring((int)LexCallback::PlayerJoined));
     target->EncodeToNetwork(broadcastMessage);
-    string brmsg = broadcastMessage.BuildNewSignedMessage();
-    DWORD size = (DWORD)brmsg.length();
-    PlayerManager::GetInst()->BroadcastMessage(target->actorNumber, (char*)brmsg.c_str(), size);
+    wstring brmsg = broadcastMessage.BuildNewSignedMessage();
+    PlayerManager::GetInst()->BroadcastMessage(target->actorNumber, brmsg);
     cout << "IO Created" << endl;
 }
 
@@ -175,11 +175,10 @@ void MessageHandler::Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& ne
 void MessageHandler::Handle_ServerRequest_Ping(NetworkMessage& netMessage) {
     //actorID , MessageInfo , callbackType, params
     NetworkMessage eolMessage;
-    eolMessage.Append(to_string(netMessage.sentActorNr));
-    eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-    eolMessage.Append(to_string((int)LexCallback::Ping_Received));
-    string message = eolMessage.BuildNewSignedMessage();
-    DWORD size = message.length();
-    LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
-    PlayerManager::GetInst()->playerHash[netMessage.sentActorNr]->Send((char*)message.c_str(), size);
+    eolMessage.Append(to_wstring(netMessage.sentActorNr));
+    eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+    eolMessage.Append(to_wstring((int)LexCallback::Ping_Received));
+    wstring message = eolMessage.BuildNewSignedMessage();
+    //LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+    PlayerManager::GetInst()->playerHash[netMessage.sentActorNr]->Send(message);
 }

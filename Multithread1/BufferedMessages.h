@@ -14,7 +14,7 @@ public:
 	DECLARE_SINGLE(BufferedMessages)
 
 public:
-	void EnqueueMessage(int playerNr, int viewID, string message);
+	void EnqueueMessage(int playerNr, int viewID, wstring message);
 
 	void RemovePlayerNr(int playerNr);
 

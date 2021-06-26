@@ -12,7 +12,7 @@ BufferedMessages::~BufferedMessages() {
 		message.reset();
 	}
 }
-void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) {
+void BufferedMessages::EnqueueMessage(int playerNr, int viewID, wstring message) {
 	WaitForSingleObject(hMutex, INFINITE);
 	shared_ptr<RPC>  rpc(new RPC());
 	rpc->playerActorNr = playerNr;
@@ -98,17 +98,18 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 	auto iterEnd = messageQueue.end();
 	IOCP_Server* serverInstance = IOCP_Server::GetInst();
 	while (iter != iterEnd) {
-		string message = (*iter)->message;
+		wstring message = (*iter)->message;
 		iter++;
 		while (iter != iterEnd) {
-			string nextMessage = (*iter)->message;
+			wstring nextMessage = (*iter)->message;
 			if (message.length() + nextMessage.length() < BUFFER - 10) {//여유
 				message.append(nextMessage);
 				iter++;
 			}
 		}
-		LPPER_IO_DATA sendIO = serverInstance->CreateMessage(message);
-		player->Send(sendIO);
+		wcout << "Buffered RPC " << message << endl;
+		player->Send(message);
 	}
+	//TODO Buffered rpc 안보내짐
 	ReleaseMutex(hMutex);
 }

@@ -2,46 +2,45 @@
 
 #include "Values.h"
 typedef struct {
-	string typeName;
-	string value;
+	wstring typeName;
+	wstring value;
 }HashValue;
+//"aa가"
+/*
+  길이 확인하고
+  길이가 다르면 읽는방법을 통일 <- 
+
+*/
 class NetworkMessage;
 class HashTable
 {
 public:
-	string name;
+	wstring name;
 	HANDLE propertyMutex;
-	unordered_map<string, shared_ptr<HashValue>> customProperty;
+	unordered_map<wstring, shared_ptr<HashValue>> customProperty;
 	HashTable(); 
 	~HashTable();
-	void SetProperty(string key, string typeName, string value) {
-		shared_ptr<HashValue>  pairKey(new HashValue());
-		pairKey->typeName = typeName;
-		pairKey->value = value;
-		WaitForSingleObject(propertyMutex, INFINITE);
-		customProperty.insert_or_assign(key, pairKey);
-		ReleaseMutex(propertyMutex);
-	}
+	void SetProperty(wstring key, wstring typeName, wstring value);
 	void RemoveAllProperties() {
 		WaitForSingleObject(propertyMutex, INFINITE);
 		customProperty.clear();
 		ReleaseMutex(propertyMutex);
 	}
-	string EncodeToNetwork() {
-		string message = NET_DELIM;
-		message = message.append(to_string(customProperty.size()));
+	wstring EncodeToNetwork() {
+		wstring message = NET_DELIM;
+		message = message.append(to_wstring(customProperty.size()));
 		for (auto entry : customProperty) {
 			auto value = entry.second;
 			message = message.append(NET_DELIM).append(entry.first).append(NET_DELIM).append(value->typeName).append(NET_DELIM).append(value->value);
 		}
-		cout << "Room: " << message << endl;
+		wcout << "Room: " << message << endl;
 		return message;
 	}
 	void EncodeToNetwork(NetworkMessage& netMessage);
 	void PrintProperties() {
 		cout << endl;
 		for (auto entry : customProperty) {
-			cout << name<<" |\t" << entry.first << "|\t" << entry.second->typeName << "|\t" << entry.second->value << endl;
+			wcout << name<<" |\t" << entry.first << "|\t" << entry.second->typeName << "|\t" << entry.second->value << endl;
 		}
 	}
 

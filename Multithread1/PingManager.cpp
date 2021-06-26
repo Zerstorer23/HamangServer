@@ -40,14 +40,14 @@ void PingManager::TimeSync_Send(Player * player, long long timeValue)
 {
 	//LEX / 0 =SERVER / PING=MESSAGEINFO / targetPlater / modifiedTime
 	NetworkMessage netMessage;
-	netMessage.Append("0");
-	netMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-	netMessage.Append(to_string((int)LexCallback::ModifyServerTime));
-	netMessage.Append(to_string(player->actorNumber));
-	netMessage.Append(to_string(timeValue));
-	string message = netMessage.BuildNewSignedMessage();
-	DWORD bytesSent =(DWORD) message.length();
-	player->Send((char*)message.c_str(), bytesSent);
+	netMessage.Append(L"0");
+	netMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+	netMessage.Append(to_wstring((int)LexCallback::ModifyServerTime));
+	netMessage.Append(to_wstring(player->actorNumber));
+	netMessage.Append(to_wstring(timeValue));
+	wstring message = netMessage.BuildNewSignedMessage();
+	//DWORD bytesSent =(DWORD) message.length();
+	player->Send(message);
 	cout << "Push Time" << timeValue << endl;
 
 }

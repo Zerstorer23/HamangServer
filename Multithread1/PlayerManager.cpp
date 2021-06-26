@@ -48,14 +48,14 @@ void PlayerManager::ChangeMasterClientOnDisconnect() {
 	masterPlayer->isMasterClient = true;   
 	
 	NetworkMessage eolMessage;
-	eolMessage.Append("0");
-	eolMessage.Append(to_string((int)MessageInfo::ServerCallbacks));
-	eolMessage.Append(to_string((int)LexCallback::MasterClientChanged));
-	eolMessage.Append(to_string(masterPlayer->actorNumber));
-	string message = eolMessage.BuildNewSignedMessage();
-	DWORD size = message.length();
-	LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
-	PlayerManager::GetInst()->BroadcastMessageAll((char*)message.c_str(), size);
+	eolMessage.Append(L"0");
+	eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+	eolMessage.Append(to_wstring((int)LexCallback::MasterClientChanged));
+	eolMessage.Append(to_wstring(masterPlayer->actorNumber));
+	wstring message = eolMessage.BuildNewSignedMessage();
+	//DWORD size = message.length();
+	//LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+	PlayerManager::GetInst()->BroadcastMessageAll(message);
 
 	ReleaseMutex(hMutex);
 };
@@ -73,7 +73,7 @@ void PlayerManager::RemovePlayer(int actorNumber)
 	cout << "Removed actor " << actorNumber << endl;
 	ReleaseMutex(hMutex);
 }
-
+/*
 void PlayerManager::BroadcastMessage(int& sourceActorNumber, char* sendBuffer, DWORD& bytesReceived)
 {
 	for (auto entry : playerHash) {
@@ -82,12 +82,20 @@ void PlayerManager::BroadcastMessage(int& sourceActorNumber, char* sendBuffer, D
 
 		targetPlayer->Send(sendBuffer, bytesReceived);
 	}
-}
-
-void PlayerManager::BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived)
+}*/
+void PlayerManager::BroadcastMessage(int& sourceActorNumber,wstring & message)
 {
 	for (auto entry : playerHash) {
-		entry.second->Send(sendBuffer, bytesReceived);
+		Player* targetPlayer = entry.second;
+		if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
+
+		targetPlayer->Send(message);
+	}
+}
+void PlayerManager::BroadcastMessageAll(wstring& message)
+{
+	for (auto entry : playerHash) {
+		entry.second->Send(message);
 	}
 }
 
@@ -100,7 +108,7 @@ void PlayerManager::PrintPlayers()
 }
 
 void PlayerManager::EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage) {
-	netMessage.Append(to_string(playerHash.size()));
+	netMessage.Append(to_wstring(playerHash.size()));
 	joinedPlayer->EncodeToNetwork(netMessage);
 	for (auto entry : playerHash) {
 		if (entry.first == joinedPlayer->actorNumber) continue;

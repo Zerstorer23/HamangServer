@@ -18,8 +18,8 @@ public:
 
 	void RemovePlayer(int actorNumber);
 
-	void BroadcastMessage(int& sourceActorNumber, char* sendBuffer, DWORD& bytesReceived);
-	void BroadcastMessageAll(char* sendBuffer, DWORD& bytesReceived);
+	void BroadcastMessage(int& sourceActorNumber, wstring& message);
+	void BroadcastMessageAll(wstring& message);
 	void PrintPlayers();
 	void SetMasterClient(int newMaster);
 	void EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage);

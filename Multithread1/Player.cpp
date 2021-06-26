@@ -6,7 +6,7 @@ Player::Player()
 {
 	handleInfo = nullptr;
 	actorNumber = -1;
-	unique_id = "";
+	unique_id = L"";
 	isMasterClient = false;
 	shared_ptr<HashTable>  cp(new HashTable());
 	customProperty = cp;
@@ -14,26 +14,21 @@ Player::Player()
 void Player::SetActorNumber(int id)
 {
 	actorNumber = id;
-	customProperty->name = " Client " + id;
+	customProperty->name = L"Client " + id;
 }
-void Player::Send(char* sendBuffer, DWORD& bytesReceived)
+void Player::Send(wstring message)
 {
-	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CloneBufferData(sendBuffer, bytesReceived, WRITE);
+	string u8message;
+	NetworkMessage::convert_unicode_to_utf8_string(u8message, message.c_str(), message.length());
+	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CreateMessageBuffer(u8message, WRITE);
 	SOCKET targetSocket = handleInfo->clientSocket;
-	cout << sendBuffer << "Send to Actor number " << actorNumber << endl;
+	cout << u8message << "Send to Actor number " << actorNumber << endl;
 	WSASend(targetSocket, &(cloneIO->wsaBuf), 1, NULL, 0, &(cloneIO->overlapped), NULL);
-}
-
-void Player::Send(LPPER_IO_DATA sendIO)
-{
-	SOCKET targetSocket = handleInfo->clientSocket;
-	cout << "Send to Actor number " << actorNumber << endl;
-	WSASend(targetSocket, &(sendIO->wsaBuf), 1, NULL, 0, &(sendIO->overlapped), NULL);
 }
 
 void Player::EncodeToNetwork(NetworkMessage& netMessage)
 {
-	netMessage.Append(to_string(actorNumber));
-	netMessage.Append(to_string(isMasterClient));
+	netMessage.Append(to_wstring(actorNumber));
+	netMessage.Append(to_wstring(isMasterClient));
 	customProperty->EncodeToNetwork(netMessage);
 }

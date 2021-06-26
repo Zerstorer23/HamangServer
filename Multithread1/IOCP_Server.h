@@ -61,7 +61,7 @@ public:
 		closesocket(serverSocket);
 		WSACleanup();
 	}
-	LPPER_IO_DATA CreateBufferData(int bufferSize, int rwMode) {
+	LPPER_IO_DATA CreateEmptyBuffer(int bufferSize, int rwMode) {
 		LPPER_IO_DATA newIO = new PER_IO_DATA();
 		memset(&(newIO->overlapped), 0, sizeof(OVERLAPPED));
 		newIO->buffer = new char[BUFFER];
@@ -70,7 +70,10 @@ public:
 		newIO->rwMode = rwMode; // IOCP 신호에는 입출력 구분이 없어서 직접 넣어야함
 		return newIO;
 	}
-	LPPER_IO_DATA CloneBufferData(char* original, int bufferSize, int rwMode) {
+	LPPER_IO_DATA CreateMessageBuffer(string u8message, int rwMode) {
+		char* original =(char * ) u8message.c_str();
+		int bufferSize = u8message.size();
+
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];
@@ -79,10 +82,6 @@ public:
 		cloneIO->wsaBuf.buf = cloneIO->buffer;//
 		cloneIO->rwMode = rwMode;
 		return cloneIO;
-	}
-	LPPER_IO_DATA CreateMessage(string& message) {
-		int bytesSend = message.length();
-		return CloneBufferData((char*)message.c_str(), bytesSend, WRITE);
 	}
 	static void RecycleIO(LPPER_IO_DATA receivedIO, int rwMode) {
 		memset(&(receivedIO->overlapped), 0, sizeof(OVERLAPPED));
@@ -105,7 +104,7 @@ public:
 
 
 	static unsigned WINAPI EchoThreadMain(LPVOID CompletionPortIO);
-	static void Append(string& s, string& broadcastString);
+	static void Append(wstring& s, wstring& broadcastString);
 	
 	void SetSocketSize(SOCKET& socket) {
 		int bufSize = BUFFER;
@@ -134,5 +133,8 @@ public:
 	void OpenServer();
 
 	void ResetServer();
+
+
+
 };
 

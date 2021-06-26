@@ -52,3 +52,11 @@ Mkfile.old
 dkms.conf
 *.db
 *.opendb
+*.ipch
+*.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/f5d1cee153ec85e1/PLAYER.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/b1c859526dd98db1/MESSAGEHANDLER.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/7fecc257136590f1/MAIN.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/5829f9c92d0c4f39/IOCP_SERVER.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/53a6220420e61c9a/HASHTABLE.ipch
+.vs/Multithread1/v16/ipch/AutoPCH/33f34128394a77fb/BUFFEREDMESSAGES.ipch

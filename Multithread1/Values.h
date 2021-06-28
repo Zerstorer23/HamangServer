@@ -26,10 +26,14 @@ using chrono::system_clock;
 #define BUFFER 1024*32
 #define READ 3
 #define WRITE 5
+#define EASY_LOG 0
+#define CRITICAL_LOG 0
 
 #define MAX_CLIENT 20
 #define	SAFE_DELETE(p)	if(p)	{ delete p; p = nullptr; }
 #define SAFE_DELETE_ARRAY(p) if(p) {delete[] p; p=NULL;}
+#define DEBUG_MODE if(CRITICAL_LOG)
+
 
 #define DECLARE_SINGLE(Type)	\
 	private:\

@@ -24,7 +24,8 @@ void IOCP_Server::OpenServer()
     //1. CP오브젝트 생성. 마지막인자 0 -> 코어의 수만큼 cp오브젝트에 스레드를 할당
     hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);//마지막인자만 중요
     GetSystemInfo(&sysInfo);
-    for (unsigned int i = 0; i < sysInfo.dwNumberOfProcessors; i++) {
+    unsigned int numThread = sysInfo.dwNumberOfProcessors;
+    for (unsigned int i = 0; i < numThread; i++) {
         //코어 수만큼 스레드 생성
         _beginthreadex(NULL, 0, EchoThreadMain, (LPVOID)hCompletionPort, 0, NULL);
         cout << "Created thread " << i << endl;
@@ -32,7 +33,9 @@ void IOCP_Server::OpenServer()
     serverSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
     SetSocketSize(serverSocket);
     SetSocketReusable(serverSocket);
-    BindAddress(serverAddress, ipAddress.c_str(), portNumber.c_str());
+    BindAddress(serverAddress, 
+        ipAddress.c_str()
+        , portNumber.c_str());
     int res = bind(serverSocket, (sockaddr*)&serverAddress, sizeof(serverAddress));
     assert(res != SOCKET_ERROR);
     res = listen(serverSocket, 5);
@@ -80,7 +83,7 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
     while (true) {
         GetQueuedCompletionStatus(hCompletionPort, &bytesReceived, (PULONG_PTR)&handleInfo, (LPOVERLAPPED*)&receivedIO, INFINITE);
         Player * sourcePlayer = handleInfo->player;
-     //   cout << "Bytes received " << bytesReceived << endl;
+       // cout << "Received " << receivedIO->buffer << endl;
         clientSocket = handleInfo->clientSocket;
         if (receivedIO->rwMode == READ) {
             if (bytesReceived == 0) {//종료
@@ -89,16 +92,16 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             }
 
             //1. Contents
-            string utf8message = receivedIO->buffer;
+
+           // string utf8message = ;
+            //wchar_t arr[BUFFER];
+            //NetworkMessage::convert_utf8_to_unicode_string2(receivedIO->buffer, arr , bytesReceived);
+            //wstring message = arr;
             wstring message;
-            DWORD err = NetworkMessage::convert_utf8_to_unicode_string(message, utf8message.c_str(), utf8message.length());
-          //  cout << "ERR " << err << endl;
-        //    cout << "Received " << utf8message << " length " << utf8message.length() << "size " << utf8message.size() << endl;
-            wcout <<L" Message :" << message << endl;
-        /*    for (int i = 0; i < message.size(); i++) {
-                cout << "utf8 " << (int)utf8message[i] << " vs unic " << (int)message[i] << endl;
-            }*/
-            
+            receivedIO->buffer[bytesReceived] = 0;
+            NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
+            DEBUG_MODE wcout <<bytesReceived<<L" vs"<<message.length() <<L" Message :" << message << endl;
+          //  cout <<" Message :" << utf8message << endl;
             //2. split하고
             NetworkMessage netMessage;
             netMessage.Split(message, '#');
@@ -110,12 +113,14 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             }
 
             // 다시 읽기모드로 재활용
+        //    SAFE_DELETE(receivedIO->buffer)
+         //   SAFE_DELETE(receivedIO)
+          //  LPPER_IO_DATA ioInfo = CreateEmptyBuffer(BUFFER, READ);
+            //WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
             IOCP_Server::RecycleIO(receivedIO,READ);
             WSARecv(clientSocket, &(receivedIO->wsaBuf), 1, NULL, &flags, &(receivedIO->overlapped), NULL);
         }
         else {
-            cout << "Message sent" << endl;
-            cout << " " << endl;
             SAFE_DELETE(receivedIO->buffer)
             SAFE_DELETE(receivedIO)
         }

@@ -22,7 +22,7 @@ void Player::Send(wstring message)
 	NetworkMessage::convert_unicode_to_utf8_string(u8message, message.c_str(), message.length());
 	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CreateMessageBuffer(u8message, WRITE);
 	SOCKET targetSocket = handleInfo->clientSocket;
-	cout << u8message << "Send to Actor number " << actorNumber << endl;
+	DEBUG_MODE cout << "["<<u8message << "] to Player " << actorNumber << endl;
 	WSASend(targetSocket, &(cloneIO->wsaBuf), 1, NULL, 0, &(cloneIO->overlapped), NULL);
 }
 

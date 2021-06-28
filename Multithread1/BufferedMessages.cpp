@@ -17,7 +17,7 @@ void BufferedMessages::EnqueueMessage(int playerNr, int viewID, wstring message)
 	shared_ptr<RPC>  rpc(new RPC());
 	rpc->playerActorNr = playerNr;
 	rpc->viewID = viewID;
-	rpc->message = message; //스마트포인터 활용 TODO
+	rpc->message = message; 
 	//auto a = rpc; // 카운트2
 
 	messageQueue.push_back(rpc);
@@ -110,6 +110,5 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 		wcout << "Buffered RPC " << message << endl;
 		player->Send(message);
 	}
-	//TODO Buffered rpc 안보내짐
 	ReleaseMutex(hMutex);
 }

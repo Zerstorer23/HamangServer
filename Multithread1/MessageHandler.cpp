@@ -15,9 +15,29 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         netMessage.SetBeginPoint();
         //1. Check signature
         wstring signature = netMessage.GetNext();
+        /*
+        TODO
+        string이 뭉쳐서 들어오면 /0가 섞여서 0LEX vs LEX 비교 오류남
+        근데 0을 안넣고 보내면 string 변환시에 문제가 있음
+
+        ->0 빼고 받고 버퍼 마지막에 0넣음.
+        아래의 경우는 이제 아마 ㅇ벗지않나 싶음 확인 필요
+        */
+        if (signature.length() > 0 &&signature.c_str()[0] == 0 && signature.length() == 4) {
+         signature = signature.substr(1, 3);
+        }
+    /*    wcout << L"SIG" << signature <<" vs "<< NetworkMessage::ServerSignature << endl;
+        for (int i = 0; i < signature.length(); i++) {
+            wcout << signature.c_str()[i] << " vs " << NetworkMessage::ServerSignature.c_str()[i] << endl;
+        }*/
+
         bool isMyPacket = (signature.compare(NET_SIG) == 0);
-        if (!isMyPacket) continue;
-        netMessage.PrintOut();
+        if (!isMyPacket) {
+            wcout << L"SIG :[" << signature << "] vs " << NET_SIG << endl;
+            wcout << L"NOT MY PACKET " << endl;
+            continue;
+        }
+        if(EASY_LOG) netMessage.PrintOut();
 
         //2. 메세지 길이 읽기
         int lengthOfMessages = stoi(netMessage.GetNext());
@@ -41,7 +61,7 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         //    cout << "Received echo message" << endl;
             //0 /1 2 3 4/ 5 6
             //한단위씩 저장됨
-            wstring message = netMessage.SaveStrings();//end exclusive
+            wstring message = netMessage.SaveStringsForBroadcast();//end exclusive
             if (messageInfo == MessageInfo::RPC 
                 || messageInfo == MessageInfo::Instantiate
                 || messageInfo == MessageInfo::Destroy  
@@ -50,13 +70,13 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
                 //저장이 필요한 타입들
                 netMessage.targetViewID = stoi(netMessage.GetNext());
-                wcout << L"RPC Saved " << message << endl;
+                DEBUG_MODE wcout << L"RPC Saved " << message << endl;
                 BufferedMessages::GetInst()->EnqueueMessage(netMessage.sentActorNr, netMessage.targetViewID, message);
             }
             netMessage.SetIteratorToEnd();
         }
-        cout << endl;
-        cout << endl;
+       DEBUG_MODE cout << endl;
+       DEBUG_MODE cout << endl;
     }
 
 
@@ -75,14 +95,14 @@ void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
         wstring value = netMessage.GetNext();
         if (target == 0) {
             IOCP_Server::GetInst()->customProperty->SetProperty(key, typeName, value);
-            IOCP_Server::GetInst()->customProperty->PrintProperties();
+            if (EASY_LOG) IOCP_Server::GetInst()->customProperty->PrintProperties();
         }
         else {
             PlayerManager::GetInst()->playerHash[target]->customProperty->SetProperty(key, typeName, value);
-            PlayerManager::GetInst()->playerHash[target]->customProperty->PrintProperties();
+            if (EASY_LOG)PlayerManager::GetInst()->playerHash[target]->customProperty->PrintProperties();
         }
     }
-    netMessage.SaveStrings(); //TODO 불필요
+    netMessage.SaveStringsForBroadcast();
 }
 void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
 {

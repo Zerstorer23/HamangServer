@@ -27,7 +27,6 @@ public:
 
 	static MessageHandler messageHandler;
 
-
 public:
 	static IOCP_Server * GetInst() {
 		if (!serverInstance) {
@@ -61,7 +60,7 @@ public:
 		closesocket(serverSocket);
 		WSACleanup();
 	}
-	LPPER_IO_DATA CreateEmptyBuffer(int bufferSize, int rwMode) {
+	static LPPER_IO_DATA CreateEmptyBuffer(int bufferSize, int rwMode) {
 		LPPER_IO_DATA newIO = new PER_IO_DATA();
 		memset(&(newIO->overlapped), 0, sizeof(OVERLAPPED));
 		newIO->buffer = new char[BUFFER];
@@ -117,7 +116,7 @@ public:
 		//setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, sizeof(bufSize));
 		setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&bufSize, sizeof(bufSize));
 		//int sendBuf,
-			int recvBuf;
+		int recvBuf;
 		//getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &len);
 		getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&recvBuf, &len);
 		printf("receive buffer size: %d\n", recvBuf);

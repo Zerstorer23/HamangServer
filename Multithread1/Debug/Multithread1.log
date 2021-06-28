@@ -1,7 +1,7 @@
 ﻿  BufferedMessages.cpp
+D:\VSProjects\HamangServer\Multithread1\BufferedMessages.cpp(20,26): error C2059: 구문 오류: '/'
   HashTable.cpp
   IOCP_Server.cpp
-  main.cpp
   MessageHandler.cpp
   NetworkMessage.cpp
   PingManager.cpp
@@ -9,4 +9,3 @@ D:\VSProjects\HamangServer\Multithread1\PingManager.cpp(25,23): warning C4244: '
   Player.cpp
   PlayerManager.cpp
   코드를 생성하고 있습니다...
-  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe

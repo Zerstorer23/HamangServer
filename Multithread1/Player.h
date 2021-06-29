@@ -11,6 +11,7 @@ public:
 	wstring unique_id;
 	int actorNumber;
 	bool isMasterClient;
+	bool isConnected;
 	shared_ptr<HashTable> customProperty;
 
 	Player();
@@ -22,7 +23,7 @@ public:
 
 //	void Send(char* sendBuffer, DWORD& bytesReceived);
 	//void Send(LPPER_IO_DATA sendIO);
-	void Send(wstring message);
+	void Send(wstring message, bool isInitial);
 
 	void EncodeToNetwork(NetworkMessage& netMessage);
 };

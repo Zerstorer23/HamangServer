@@ -43,7 +43,6 @@ void PlayerManager::SetMasterClient(int newMaster) {
 };
 void PlayerManager::ChangeMasterClientOnDisconnect() {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "Changing master on disconnect" << endl;
 	masterPlayer = GetFirstPlayer();
 	masterPlayer->isMasterClient = true;   
 	
@@ -55,8 +54,8 @@ void PlayerManager::ChangeMasterClientOnDisconnect() {
 	wstring message = eolMessage.BuildNewSignedMessage();
 	//DWORD size = message.length();
 	//LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+	cout << "Changing master on disconnect to"<<masterPlayer->actorNumber << endl;
 	PlayerManager::GetInst()->BroadcastMessageAll(message);
-
 	ReleaseMutex(hMutex);
 };
 
@@ -89,13 +88,13 @@ void PlayerManager::BroadcastMessage(int& sourceActorNumber,wstring & message)
 		Player* targetPlayer = entry.second;
 		if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
 
-		targetPlayer->Send(message);
+		targetPlayer->Send(message,false);
 	}
 }
 void PlayerManager::BroadcastMessageAll(wstring& message)
 {
 	for (auto entry : playerHash) {
-		entry.second->Send(message);
+		entry.second->Send(message,false);
 	}
 }
 

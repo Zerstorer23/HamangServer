@@ -156,19 +156,40 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
     player->Send(roomInformationPacket);*/
      wstring message = netMessage.BuildNewSignedMessage();
-    player->Send(message);
+     player->Send(message, true);
+     
+     //6. RPC
+     BufferedMessages::GetInst()->SendBufferedMessages(player);
+     NetworkMessage eolMessage;
+     eolMessage.Append(to_wstring(player->actorNumber));
+     eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+     eolMessage.Append(to_wstring((int)LexCallback::OnLocalPlayerJoined));
+     message = eolMessage.BuildNewSignedMessage();
+     // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
+     player->Send(message, false);
+     cout << "Sent buffered RPCs" << endl;
 
+     //7 .Notify others
+     NetworkMessage broadcastMessage;
+     broadcastMessage.Append(L"-1");
+     broadcastMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
+     broadcastMessage.Append(to_wstring((int)LexCallback::PlayerJoined));
+     player->EncodeToNetwork(broadcastMessage);
+     wstring brmsg = broadcastMessage.BuildNewSignedMessage();
+     PlayerManager::GetInst()->BroadcastMessage(player->actorNumber, brmsg);
 }
 
 void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_DATA handleInfo, Player * sourcePlayer)
 {
     PlayerManager* playerManager = PlayerManager::GetInst();
+    auto bufferedMessages = BufferedMessages::GetInst();
     int disconnPlayer = sourcePlayer->actorNumber;
     bool isMaster = sourcePlayer->isMasterClient;
     SAFE_DELETE(handleInfo)
     SAFE_DELETE(receivedIO->buffer)
     SAFE_DELETE(receivedIO)
     playerManager->RemovePlayer(sourcePlayer->actorNumber);
+
     //actorID , MessageInfo , callbackType, params
     NetworkMessage netMessage;
     netMessage.Append(L"0");
@@ -179,11 +200,15 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
     playerManager->BroadcastMessageAll(msg);
 
     if (playerManager->GetPlayerCount() == 0) {
-        BufferedMessages::GetInst()->RemoveAll();
-        GetInst()->customProperty->RemoveAllProperties();
-    }else if (isMaster) {
-        playerManager->ChangeMasterClientOnDisconnect();
+        GetInst()->ResetServer();
     }
+    else {
+        if (isMaster) {
+            playerManager->ChangeMasterClientOnDisconnect();
+        }
+        bufferedMessages->RemovePlayerNr(disconnPlayer);
+    } 
+    
     cout << "Disconnect Client "<< disconnPlayer<< " / remain "<< playerManager->GetPlayerCount() << endl;
 }
 
@@ -192,4 +217,6 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
 void IOCP_Server::ResetServer() {
     BufferedMessages::GetInst()->RemoveAll();
     customProperty->RemoveAllProperties();
+    PlayerManager::GetInst()->Reset();
+    wcout << L"Server Reset." << endl;
 }

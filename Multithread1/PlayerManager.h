@@ -32,5 +32,9 @@ public:
 	int GetPlayerCount() {
 		return playerHash.size();
 	}
+	void Reset() {
+		masterPlayer = nullptr;
+		nextActorNumber = 1;
+	}
 };
 

@@ -8,6 +8,7 @@ Player::Player()
 	actorNumber = -1;
 	unique_id = L"";
 	isMasterClient = false;
+	isConnected = false;
 	shared_ptr<HashTable>  cp(new HashTable());
 	customProperty = cp;
 }
@@ -16,8 +17,9 @@ void Player::SetActorNumber(int id)
 	actorNumber = id;
 	customProperty->name = L"Client " + id;
 }
-void Player::Send(wstring message)
+void Player::Send(wstring message, bool isInitial)
 {
+	if (!isConnected && !isInitial) return;
 	string u8message;
 	NetworkMessage::convert_unicode_to_utf8_string(u8message, message.c_str(), message.length());
 	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CreateMessageBuffer(u8message, WRITE);

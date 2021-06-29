@@ -27,36 +27,41 @@ void BufferedMessages::EnqueueMessage(int playerNr, int viewID, wstring message)
 }
 void BufferedMessages::RemovePlayerNr(int playerNr) {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "playerNr 삭제시작 " << messageQueue.size() << endl;
+	cout << "플레이어"<<playerNr<<" 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
+	int i = 0;
 	while (iter != iterEnd) {
 		if ((*iter)->playerActorNr == playerNr) {
 			iter->reset();
 			iter = messageQueue.erase(iter);
 		}
 		else {
+			DEBUG_MODE	wcout << (i++) << L"/" << messageQueue.size() << L": " << (*iter)->message << endl;
 			iter++;
 		}
 	}
-	cout << "RPC크기 " << messageQueue.size() << endl;
+	//cout << "잔여 RPC크기 " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }//게임잡	
 void BufferedMessages::RemoveViewID(int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "viewID 삭제시작 " << messageQueue.size() << endl;
+	cout << "View"<<viewID<<" 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
+	int i = 0;
 	while (iter != iterEnd) {
 		if ((*iter)->viewID == viewID) {
+	//		wcout <<  L"\t삭제:" <<(*iter)->message << endl;
 			iter->reset();
 			iter = messageQueue.erase(iter);
 		}
 		else {
+			DEBUG_MODE	wcout <<(i++)<<L"/"<< messageQueue.size() <<L": "<<(*iter)->message << endl;
 			iter++;
 		}
 	}
-	cout << "RPC크기 " << messageQueue.size() << endl;
+	//cout << "잔여 RPC크기 " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
@@ -91,12 +96,18 @@ void BufferedMessages::RemoveAll() {
 	cout <<"RPC크기 "<< messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
+/*
+TODO
+ 합성이 일어나지않는데 받는쪽에서는 다 뭉쳐져서 들어옴
+ wcout켜면 vector index 오류남.
+  (2인 플레이중)
+*/
 void BufferedMessages::SendBufferedMessages(Player* player)
 {
+	player->isConnected = true;
 	WaitForSingleObject(hMutex, INFINITE);
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
-	IOCP_Server* serverInstance = IOCP_Server::GetInst();
 	while (iter != iterEnd) {
 		wstring message = (*iter)->message;
 		iter++;
@@ -107,8 +118,8 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 				iter++;
 			}
 		}
-		wcout << "Buffered RPC " << message << endl;
-		player->Send(message);
+		//wcout << "Buffered RPC " << message << endl;
+		player->Send(message, true);
 	}
 	ReleaseMutex(hMutex);
 }

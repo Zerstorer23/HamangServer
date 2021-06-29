@@ -47,7 +47,7 @@ void PingManager::TimeSync_Send(Player * player, long long timeValue)
 	netMessage.Append(to_wstring(timeValue));
 	wstring message = netMessage.BuildNewSignedMessage();
 	//DWORD bytesSent =(DWORD) message.length();
-	player->Send(message);
+	player->Send(message,true);
 	cout << "Push Time" << timeValue << endl;
 
 }

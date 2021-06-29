@@ -67,6 +67,9 @@ public:
 	wstring SaveStringsForBroadcast() {
 		//자신제외 방송용.
 		wstring message;
+		if (endPoint > tokens.size()) {
+			cout << "Start " << beginPoint << " ~ end " << endPoint << " token size " << tokens.size() << endl;
+		}
 		for (int i = beginPoint; i < endPoint; i++) {
 			message.append(NET_DELIM);
 			message.append(tokens[i]);

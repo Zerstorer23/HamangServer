@@ -1,11 +1,6 @@
 ﻿  BufferedMessages.cpp
-D:\VSProjects\HamangServer\Multithread1\BufferedMessages.cpp(20,26): error C2059: 구문 오류: '/'
-  HashTable.cpp
-  IOCP_Server.cpp
+D:\VSProjects\HamangServer\Multithread1\NetworkMessage.h(70,16): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
   MessageHandler.cpp
-  NetworkMessage.cpp
-  PingManager.cpp
-D:\VSProjects\HamangServer\Multithread1\PingManager.cpp(25,23): warning C4244: '초기화 중': 'double'에서 '__int64'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Player.cpp
-  PlayerManager.cpp
+D:\VSProjects\HamangServer\Multithread1\NetworkMessage.h(70,16): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
   코드를 생성하고 있습니다...
+  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe

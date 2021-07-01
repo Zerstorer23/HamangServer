@@ -13,7 +13,7 @@ int main()
     wcout.imbue(locale("korean"));
     SetConsoleOutputCP(949);
    // cout.imbue(locale("korean"));
-    string ip = "127.0.0.1";
+    string ip = "172.30.1.27";// "127.0.0.1";
     string port = "9000";
     IOCP_Server * myServer =IOCP_Server::GetInst();
     PlayerManager* playerManager = PlayerManager::GetInst();

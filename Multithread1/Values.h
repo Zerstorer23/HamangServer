@@ -23,7 +23,13 @@ using chrono::duration_cast;
 using chrono::milliseconds;
 using chrono::seconds;
 using chrono::system_clock;
-#define BUFFER 1024*32
+/*
+TODO 별도로 Merge 과저없이도 buffer에 뭉쳐서 들어오고 나가는 경우가 존재.
+이 경우 buffer에서 잘리는 데이터가 존재함.
+
+1024 1024하니까 bad_alloc나옴
+*/
+#define BUFFER 128 * 1024
 #define READ 3
 #define WRITE 5
 #define EASY_LOG 0

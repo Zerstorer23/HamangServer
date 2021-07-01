@@ -27,7 +27,7 @@ void BufferedMessages::EnqueueMessage(int playerNr, int viewID, wstring message)
 }
 void BufferedMessages::RemovePlayerNr(int playerNr) {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "플레이어"<<playerNr<<" 삭제시작 " << messageQueue.size() << endl;
+	//cout << "플레이어"<<playerNr<<" 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	int i = 0;
@@ -46,7 +46,7 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 }//게임잡	
 void BufferedMessages::RemoveViewID(int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "View"<<viewID<<" 삭제시작 " << messageQueue.size() << endl;
+	//cout << "View"<<viewID<<" 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	int i = 0;
@@ -66,7 +66,7 @@ void BufferedMessages::RemoveViewID(int viewID) {
 }
 void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "player viewID 삭제시작 " << messageQueue.size() << endl;
+	//cout << "player viewID 삭제시작 " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {

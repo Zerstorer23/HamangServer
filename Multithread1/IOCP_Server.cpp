@@ -102,6 +102,9 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
             DEBUG_MODE wcout <<bytesReceived<<L" vs"<<message.length() <<L" Message :" << message << endl;
           //  cout <<" Message :" << utf8message << endl;
+          // /*
+          // TODO 32kb보다 큰 데이터가 잘려서 들어오는 경우가 실제 있음.
+          // */
             //2. split하고
             NetworkMessage netMessage;
             netMessage.Split(message, '#');
@@ -167,7 +170,7 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
      message = eolMessage.BuildNewSignedMessage();
      // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
      player->Send(message, false);
-     cout << "Sent buffered RPCs" << endl;
+     cout << "Sent buffered RPCs"<<message.size() * sizeof(wchar_t) << endl;
 
      //7 .Notify others
      NetworkMessage broadcastMessage;

@@ -100,7 +100,8 @@ public:
 	void BindAddress(SOCKADDR_IN& servAddr, const char* ip_addr, const  char* port) {
 		memset(&servAddr, 0, sizeof(servAddr));
 		servAddr.sin_family = AF_INET;
-		inet_pton(AF_INET, ip_addr, &(servAddr.sin_addr.s_addr));
+		servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+		//	inet_pton(AF_INET, ip_addr, &(servAddr.sin_addr.s_addr));
 		servAddr.sin_port = htons(atoi(port));
 	}
 

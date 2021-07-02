@@ -100,7 +100,8 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             wstring message;
             receivedIO->buffer[bytesReceived] = 0;
             NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
-            DEBUG_MODE wcout <<bytesReceived<<L" vs"<<message.length() <<L" Message :" << message << endl;
+           // DEBUG_MODE
+                wcout <<message.length()*sizeof(wchar_t) <<L" Message :" << message << endl;
           //  cout <<" Message :" << utf8message << endl;
           // /*
           // TODO 32kb보다 큰 데이터가 잘려서 들어오는 경우가 실제 있음.

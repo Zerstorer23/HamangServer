@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <iostream>
 #include <winsock2.h>
@@ -22,14 +22,15 @@ using namespace std;
 using chrono::duration_cast;
 using chrono::milliseconds;
 using chrono::seconds;
+using namespace string_literals;
 using chrono::system_clock;
 /*
-TODO º°µµ·Î Merge °úÀú¾øÀÌµµ buffer¿¡ ¹¶ÃÄ¼­ µé¾î¿À°í ³ª°¡´Â °æ¿ì°¡ Á¸Àç.
-ÀÌ °æ¿ì buffer¿¡¼­ Àß¸®´Â µ¥ÀÌÅÍ°¡ Á¸ÀçÇÔ.
+TODO ë³„ë„ë¡œ Merge ê³¼ì €ì—†ì´ë„ bufferì— ë­‰ì³ì„œ ë“¤ì–´ì˜¤ê³  ë‚˜ê°€ëŠ” ê²½ìš°ê°€ ì¡´ì¬.
+ì´ ê²½ìš° bufferì—ì„œ ì˜ë¦¬ëŠ” ë°ì´í„°ê°€ ì¡´ì¬í•¨.
 
-1024 1024ÇÏ´Ï±î bad_alloc³ª¿È
+1024 1024í•˜ë‹ˆê¹Œ bad_allocë‚˜ì˜´
 */
-#define BUFFER 128 * 1024
+#define BUFFER 128 * 1024 //128ì—ì„œ ì„±ê³µ
 #define READ 3
 #define WRITE 5
 #define EASY_LOG 0
@@ -69,7 +70,7 @@ typedef struct {
 }PER_HANDLE_DATA, * LPPER_HANDLE_DATA;
 
 typedef struct {
-	OVERLAPPED overlapped;//±¸Á¶Ã¼ÀÇ ÁÖ¼Ò´Â Ã¹º¯¼ö overlapÀÇÁÖ¼Ò
+	OVERLAPPED overlapped;//êµ¬ì¡°ì²´ì˜ ì£¼ì†ŒëŠ” ì²«ë³€ìˆ˜ overlapì˜ì£¼ì†Œ
 	WSABUF wsaBuf;//WSAREcv
 	//char buffer[BUFFER]; //=malloc() new char[](BUFFER)
 	char* buffer; //= nullptr;// = new char[BUFFER];
@@ -78,14 +79,14 @@ typedef struct {
 typedef struct {
 	int playerActorNr;
 	int viewID;
-	wstring message;
+	string message;
 }RPC, * PRPC;
 
 
 
 /*
-1. ¸ğµç cpp´Â ¸ŞÀÎ Çì´õ
-2. ÀÚ±â cpp´Â ÀÚ±â Çì´õ
-3. ÀÚ±â cpp¿¡¼­ ´Ù¸¥ cpp´Â Çì´õ¿¡ Àü¹æ¼±¾ğ ÈÄ cpp¿¡¼­ Çì´õ include.
+1. ëª¨ë“  cppëŠ” ë©”ì¸ í—¤ë”
+2. ìê¸° cppëŠ” ìê¸° í—¤ë”
+3. ìê¸° cppì—ì„œ ë‹¤ë¥¸ cppëŠ” í—¤ë”ì— ì „ë°©ì„ ì–¸ í›„ cppì—ì„œ í—¤ë” include.
 
 */

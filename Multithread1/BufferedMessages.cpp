@@ -1,4 +1,4 @@
-#include "BufferedMessages.h"
+ï»¿#include "BufferedMessages.h"
 #include "NetworkMessage.h"
 #include "IOCP_Server.h"
 #include "Player.h"
@@ -12,22 +12,22 @@ BufferedMessages::~BufferedMessages() {
 		message.reset();
 	}
 }
-void BufferedMessages::EnqueueMessage(int playerNr, int viewID, wstring message) {
+void BufferedMessages::EnqueueMessage(int playerNr, int viewID, string message) {
 	WaitForSingleObject(hMutex, INFINITE);
 	shared_ptr<RPC>  rpc(new RPC());
 	rpc->playerActorNr = playerNr;
 	rpc->viewID = viewID;
 	rpc->message = message; 
-	//auto a = rpc; // Ä«¿îÆ®2
+	//auto a = rpc; // ì¹´ìš´íŠ¸2
 
 	messageQueue.push_back(rpc);
-//unique´Â user count 1 ÀÌ»ó ºÒ°¡..
+//uniqueëŠ” user count 1 ì´ìƒ ë¶ˆê°€..
 
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::RemovePlayerNr(int playerNr) {
 	WaitForSingleObject(hMutex, INFINITE);
-	//cout << "ÇÃ·¹ÀÌ¾î"<<playerNr<<" »èÁ¦½ÃÀÛ " << messageQueue.size() << endl;
+	//cout << "í”Œë ˆì´ì–´"<<playerNr<<" ì‚­ì œì‹œì‘ " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	int i = 0;
@@ -37,36 +37,36 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 			iter = messageQueue.erase(iter);
 		}
 		else {
-			DEBUG_MODE	wcout << (i++) << L"/" << messageQueue.size() << L": " << (*iter)->message << endl;
+			DEBUG_MODE	cout << (i++) << "/" << messageQueue.size() << ": " << (*iter)->message << endl;
 			iter++;
 		}
 	}
-	//cout << "ÀÜ¿© RPCÅ©±â " << messageQueue.size() << endl;
+	//cout << "ì”ì—¬ RPCí¬ê¸° " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
-}//°ÔÀÓÀâ	
+}//ê²Œì„ì¡	
 void BufferedMessages::RemoveViewID(int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
-	//cout << "View"<<viewID<<" »èÁ¦½ÃÀÛ " << messageQueue.size() << endl;
+	//cout << "View"<<viewID<<" ì‚­ì œì‹œì‘ " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	int i = 0;
 	while (iter != iterEnd) {
 		if ((*iter)->viewID == viewID) {
-	//		wcout <<  L"\t»èÁ¦:" <<(*iter)->message << endl;
+	//		cout <<  L"\tì‚­ì œ:" <<(*iter)->message << endl;
 			iter->reset();
 			iter = messageQueue.erase(iter);
 		}
 		else {
-			DEBUG_MODE	wcout <<(i++)<<L"/"<< messageQueue.size() <<L": "<<(*iter)->message << endl;
+			DEBUG_MODE	cout <<(i++)<<"/"<< messageQueue.size() <<": "<<(*iter)->message << endl;
 			iter++;
 		}
 	}
-	//cout << "ÀÜ¿© RPCÅ©±â " << messageQueue.size() << endl;
+	//cout << "ì”ì—¬ RPCí¬ê¸° " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
 void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
 	WaitForSingleObject(hMutex, INFINITE);
-	//cout << "player viewID »èÁ¦½ÃÀÛ " << messageQueue.size() << endl;
+	//cout << "player viewID ì‚­ì œì‹œì‘ " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
@@ -78,30 +78,25 @@ void BufferedMessages::RemoveRPC(int playerNr, int viewID) {
 			iter++;
 		}
 	}
-	cout << "RPCÅ©±â " << messageQueue.size() << endl;
+	cout << u8"RPCí¬ê¸° " << messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 
 }
 void BufferedMessages::RemoveAll() {
 	WaitForSingleObject(hMutex, INFINITE);
-	cout << "ÀüÃ¼»èÁ¦ ½ÃÀÛ " << messageQueue.size() << endl;
+	cout << u8"ì „ì²´ì‚­ì œ ì‹œì‘ " << messageQueue.size() << endl;
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
 		//cout << iter->use_count() << endl;
 		iter->reset();
 		iter = messageQueue.erase(iter);
-	}//for delete ¸¶Áö¸·¿¡clear
+	}//for delete ë§ˆì§€ë§‰ì—clear
 	//messageQueue.erase(remove(messageQueue.begin(), messageQueue.end(),NULL), messageQueue.end());
-	cout <<"RPCÅ©±â "<< messageQueue.size() << endl;
+	cout <<u8"RPCí¬ê¸° "<< messageQueue.size() << endl;
 	ReleaseMutex(hMutex);
 }
-/*
-TODO
- ÇÕ¼ºÀÌ ÀÏ¾î³ªÁö¾Ê´Âµ¥ ¹Ş´ÂÂÊ¿¡¼­´Â ´Ù ¹¶ÃÄÁ®¼­ µé¾î¿È
- wcoutÄÑ¸é vector index ¿À·ù³².
-  (2ÀÎ ÇÃ·¹ÀÌÁß)
-*/
+
 void BufferedMessages::SendBufferedMessages(Player* player)
 {
 	player->isConnected = true;
@@ -109,16 +104,16 @@ void BufferedMessages::SendBufferedMessages(Player* player)
 	auto iter = messageQueue.begin();
 	auto iterEnd = messageQueue.end();
 	while (iter != iterEnd) {
-		wstring message = (*iter)->message;
+		string message = (*iter)->message;
 		iter++;
 		while (iter != iterEnd) {
-			wstring nextMessage = (*iter)->message;
-			if (message.length() + nextMessage.length() < BUFFER - 10) {//¿©À¯
+			string nextMessage = (*iter)->message;
+			if (message.length() + nextMessage.length() < BUFFER - 10) {//ì—¬ìœ 
 				message.append(nextMessage);
 				iter++;
 			}
 		}
-		//wcout << "Buffered RPC " << message << endl;
+		//cout << "Buffered RPC " << message << endl;
 		player->Send(message, true);
 	}
 	ReleaseMutex(hMutex);

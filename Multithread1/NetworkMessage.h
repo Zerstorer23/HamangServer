@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Values.h"
 class NetworkMessage
 {
@@ -6,13 +6,17 @@ private:
 	unsigned int iterator;
 public:
 	//static wstring ServerSignature;
-	wstring broadcastMessage;
-	vector<wstring> tokens;
+	string broadcastMessage;
+	
+	/*wstring* wholeString;
+	wstring incompleteMessage;
+	bool isIncomplete;*/
+	vector<string> tokens;
 	int count;
 	int sentActorNr;
 	int targetViewID;
-	int beginPoint;
-	int endPoint;
+	unsigned int beginPoint;
+	unsigned int endPoint;
 
 	NetworkMessage() {
 		iterator = 0;
@@ -20,38 +24,39 @@ public:
 		count = 0;
 		beginPoint = 0;
 		endPoint = 0;
+	/*	incompleteMessage;
+		isIncomplete = false;*/
 	}
 	~NetworkMessage() {
 
 	}
-	void Split(wstring& str, wchar_t delim) {
+	void Split(string& str, char delim) {
 		int previous = 0;
 		int current = 0;
-		vector<wstring> x;
-		x.clear();
+		tokens.clear();
 		current = (int)str.find(delim);
-		//find´Â Ã£À»°Ô ¾øÀ¸¸é npos¸¦ ¸®ÅÏÇÔ
-		while (current != wstring::npos) {
-			wstring substring = str.substr(previous, current - previous);
-			if (substring.empty()) continue;// __#_#___# <-¸¶Áö¸· Ä³¸¯ÅÍ empty ½ºÅµ
-			x.push_back(substring);
-			//wcout << substring << endl;
+		//findëŠ” ì°¾ì„ê²Œ ì—†ìœ¼ë©´ nposë¥¼ ë¦¬í„´í•¨
+		while (current != string::npos) {
+			string substring = str.substr(previous, current - previous);
+			if (substring.empty()) continue;// __#_#___# <-ë§ˆì§€ë§‰ ìºë¦­í„° empty ìŠ¤í‚µ
+			tokens.push_back(substring);
+			//cout << substring << endl;
 			previous = current + 1;
 			current = (int)str.find(delim, previous);
 		}
 //		x.push_back(str.substr(previous, current - previous));
-		count = (int)x.size();
-		tokens = x;
+		count = (int)tokens.size();
+	//	tokens = x;
 	}
-	wstring GetNext() {
+	string GetNext() {
 		assert(iterator < tokens.size());
 		return tokens[iterator++];
 	}
-	wstring PeekPrev() {
+	string PeekPrev() {
 		return tokens[iterator - 1];
 	}
 
-	void Append(wstring s)
+	void Append(string s)
 	{
 		broadcastMessage.append(NET_DELIM);
 		broadcastMessage.append(s);
@@ -60,17 +65,14 @@ public:
 	void Append(int s)
 	{
 		broadcastMessage.append(NET_DELIM);
-		broadcastMessage.append(to_wstring(s));
+		broadcastMessage.append(to_string(s));
 		count++;
 	}
 
-	wstring SaveStringsForBroadcast() {
-		//ÀÚ½ÅÁ¦¿Ü ¹æ¼Û¿ë.
-		wstring message;
-		if (endPoint > tokens.size()) {
-			cout << "Start " << beginPoint << " ~ end " << endPoint << " token size " << tokens.size() << endl;
-		}
-		for (int i = beginPoint; i < endPoint; i++) {
+	string SaveStringsForBroadcast() {
+		//ìžì‹ ì œì™¸ ë°©ì†¡ìš©.
+		string message;
+		for (unsigned int i = beginPoint; i < endPoint; i++) {
 			message.append(NET_DELIM);
 			message.append(tokens[i]);
 			count++;
@@ -83,8 +85,21 @@ public:
 	}
 	void SetEndPoint(int lengthOfMessage) {
 		endPoint = beginPoint + lengthOfMessage;
-	//	wcout << L"End point set " << endPoint << L" token size" << tokens.size() << endl;
+		if (endPoint > tokens.size()) {
+			//	cout << "Merge error End point set " << endPoint << " token size" << tokens.size() << endl;
+			//DelayString();
+		}
 	}
+	/*void DelayString() {
+		int size = tokens.size();
+		incompleteMessage = NET_SIG;
+		incompleteMessage.append(NET_DELIM);
+		for (int i = beginPoint; i < size; i++) {
+			incompleteMessage.append(tokens[i]);
+			incompleteMessage.append(NET_DELIM);
+		}
+	}*/
+
 	void SetIteratorToEnd() {
 		iterator = endPoint;
 	}
@@ -97,73 +112,76 @@ public:
 		return !broadcastMessage.empty();
 	}
 
-	wstring BuildCopiedMessage() {
-		//¹æ¼Û¸Þ¼¼Áö
-		return broadcastMessage;//Áß¿ä. Ã³À½¿¡ net delimµé¾î°¡¸é ¾ÈµÇÁö¸¸ c#À¸·Î °¡¸é¼­ »ç¶óÁ®¹ö¸²
+	string BuildCopiedMessage() {
+		//ë°©ì†¡ë©”ì„¸ì§€
+		return broadcastMessage;//ì¤‘ìš”. ì²˜ìŒì— net delimë“¤ì–´ê°€ë©´ ì•ˆë˜ì§€ë§Œ c#ìœ¼ë¡œ ê°€ë©´ì„œ ì‚¬ë¼ì ¸ë²„ë¦¼
 	}
-	wstring BuildNewSignedMessage() {
-		//Áß¿ä. Ã³À½¿¡ net delimµé¾î°¡¸é ¾ÈµÇÁö¸¸ c#À¸·Î °¡¸é¼­ »ç¶óÁ®¹ö¸²
-		//¼­¹ö¿¡¼­ »õ·Î »ý¼ºµÈ ¸Þ¼¼Áö¿ë
-		return L"#LEX#" + to_wstring(count + 2) + broadcastMessage;
+	string BuildNewSignedMessage() {
+		//ì¤‘ìš”. ì²˜ìŒì— net delimë“¤ì–´ê°€ë©´ ì•ˆë˜ì§€ë§Œ c#ìœ¼ë¡œ ê°€ë©´ì„œ ì‚¬ë¼ì ¸ë²„ë¦¼
+		//ì„œë²„ì—ì„œ ìƒˆë¡œ ìƒì„±ëœ ë©”ì„¸ì§€ìš©
+		/*
+		
+		*/
+		return u8"#LEX#"s + to_string(count + 2) + broadcastMessage;
 	}
 	void PrintOut() {
 		int iter = beginPoint;
 		int initial = beginPoint;
 		iter++;
 		int length = stoi(tokens[iter++]);
-		wstring sentActor = tokens[iter++];
+		string sentActor = tokens[iter++];
 		MessageInfo msgInfo = (MessageInfo)stoi(tokens[iter++]);
 		if (msgInfo == MessageInfo::ServerRequest) {
 			LexRequest reqInfo = (LexRequest)stoi(tokens[iter++]);
 			if (reqInfo == LexRequest::Ping) return;
-			wcout << "===============================" << endl;
-			wcout << sentActor << " : " << MsgInfoToString(msgInfo);
-			wcout << " - " << ReqInfoToString(reqInfo);
+			cout << "===============================" << endl;
+			cout << sentActor << " : " << MsgInfoToString(msgInfo);
+			cout << " - " << ReqInfoToString(reqInfo);
 		}
 		while (iter < initial + length) {
-			wcout << " " << tokens[iter++];
+			cout << " " << tokens[iter++];
 		}
-		wcout << endl;
+		cout << endl;
 
 	}
 
-	static wstring MsgInfoToString(MessageInfo info) {
+	static string MsgInfoToString(MessageInfo info) {
 		switch (info)
 		{
 		case MessageInfo::ServerRequest:
-			return L"Server Request";
+			return u8"Server Request";
 		case MessageInfo::RPC:
-			return L"RPC";
+			return u8"RPC";
 		case MessageInfo::SyncVar:
-			return L"SyncVar";
+			return u8"SyncVar";
 		case MessageInfo::Chat:
-			return L"Chat";
+			return u8"Chat";
 		case MessageInfo::Instantiate:
-			return L"Instantiate";
+			return u8"Instantiate";
 		case MessageInfo::Destroy:
-			return L"Destroy";
+			return u8"Destroy";
 		case MessageInfo::SetHash:
-			return L"SetHash";
+			return u8"SetHash";
 		case MessageInfo::ServerCallbacks:
-			return L"ServerCallbacks";
+			return u8"ServerCallbacks";
 		default:
-			return L"?";
+			return u8"?";
 		}
 
 	}
-	static wstring ReqInfoToString(LexRequest info) {
+	static string ReqInfoToString(LexRequest info) {
 		switch (info)
 		{
 		case LexRequest::RemoveRPC:
-			return L"RemoveRPC";
+			return u8"RemoveRPC";
 		case LexRequest::ChangeMasterClient:
-			return L"ChangeMasterClient";
+			return u8"ChangeMasterClient";
 		case LexRequest::Receive_modifiedTime:
-			return L"Receive_modifiedTime";
+			return u8"Receive_modifiedTime";
 		case LexRequest::Ping:
-			return L"Ping";
+			return u8"Ping";
 		default:
-			return L"?";
+			return u8"?";
 		}
 	}
 

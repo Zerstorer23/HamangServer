@@ -1,3 +1,2 @@
 ﻿  IOCP_Server.cpp
-D:\VSProjects\HamangServer\Multithread1\NetworkMessage.h(70,16): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
-  Multithread1.vcxproj -> D:\VSProjects\HamangServer\Debug\Multithread1.exe
+  Multithread1.vcxproj -> C:\Users\Lex\Documents\GitHub\HamangServer\Debug\Multithread1.exe

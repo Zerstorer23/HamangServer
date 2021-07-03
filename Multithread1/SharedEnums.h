@@ -1,8 +1,8 @@
 #pragma once
 
 
-#define NET_DELIM L"#"
-#define NET_SIG L"LEX"
+#define NET_DELIM u8"#"s
+#define NET_SIG u8"LEX"s
 
 enum class MessageInfo {
     ServerRequest, RPC, SyncVar, Chat, Instantiate, Destroy, SetHash, ServerCallbacks

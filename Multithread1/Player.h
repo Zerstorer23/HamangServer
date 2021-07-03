@@ -8,7 +8,7 @@ class Player
 
 public:
 	LPPER_HANDLE_DATA handleInfo;
-	wstring unique_id;
+	string unique_id;
 	int actorNumber;
 	bool isMasterClient;
 	bool isConnected;
@@ -23,7 +23,7 @@ public:
 
 //	void Send(char* sendBuffer, DWORD& bytesReceived);
 	//void Send(LPPER_IO_DATA sendIO);
-	void Send(wstring message, bool isInitial);
+	void Send(string message, bool isInitial);
 
 	void EncodeToNetwork(NetworkMessage& netMessage);
 };

@@ -86,22 +86,34 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
        // cout << "Received " << receivedIO->buffer << endl;
         clientSocket = handleInfo->clientSocket;
         if (receivedIO->rwMode == READ) {
-            if (bytesReceived == 0) {//종료
+            if (bytesReceived == 0) {
+                //TODO 
+                //종료
                 HandlePlayerDisconnect(receivedIO,handleInfo, sourcePlayer);
                 continue;
             }
+            
 
             //1. Contents
+            /*
+            
+            1. 원본으로 받고
+            2. 컨텐츠 단위로 각 함수가 변환 / 역변환 실시
 
+            */
            // string utf8message = ;
             //wchar_t arr[BUFFER];
             //NetworkMessage::convert_utf8_to_unicode_string2(receivedIO->buffer, arr , bytesReceived);
             //wstring message = arr;
-            wstring message;
-            receivedIO->buffer[bytesReceived] = 0;
-            NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
-           // DEBUG_MODE
-                wcout <<message.length()*sizeof(wchar_t) <<L" Message :" << message << endl;
+            string message;
+            if (bytesReceived < BUFFER) {
+                //. 0안넣으면 출력망함.
+                // 근데 끊겨서 들어오는 겨우 마지막자를 0넣으면 데이터 변조임.
+                receivedIO->buffer[bytesReceived] = 0;
+            }
+            message = receivedIO->buffer;
+          //  NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
+           // DEBUG_MODE   cout <<message.length() <<u8" Message :"s << message << endl;
           //  cout <<" Message :" << utf8message << endl;
           // /*
           // TODO 32kb보다 큰 데이터가 잘려서 들어오는 경우가 실제 있음.
@@ -109,9 +121,10 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             //2. split하고
             NetworkMessage netMessage;
             netMessage.Split(message, '#');
-            messageHandler.HandleMessage(netMessage);
+            bool IsCompleteMessage = messageHandler.HandleMessage(netMessage);
             if (netMessage.HasMessageToBroadcast()) {
-                wstring msg = netMessage.BuildCopiedMessage();
+                string msg = netMessage.BuildCopiedMessage();
+                 cout << message.length() << u8"send Message :"s << message << endl;
                 PlayerManager::GetInst()->BroadcastMessage(sourcePlayer->actorNumber, msg);
              //   PlayerManager::GetInst()->BroadcastMessageAll(msg);
             }
@@ -122,7 +135,26 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
           //  LPPER_IO_DATA ioInfo = CreateEmptyBuffer(BUFFER, READ);
             //WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
             IOCP_Server::RecycleIO(receivedIO,READ);
+            /*
+            * 1. memcpy ( 잘린부분을 새 버퍼 앞에)
+            * 2.미리 채운만큼 ++해서 받음
+            
+            */
+        //    receivedIO->wsaBuf.buf = receivedIO->buffer + 24;
+         //   receivedIO->wsaBuf.len = 1024 - 20;
+            //소켓 버퍼안에 남은건 다음에 또 받아와짐
             WSARecv(clientSocket, &(receivedIO->wsaBuf), 1, NULL, &flags, &(receivedIO->overlapped), NULL);
+            /*
+            todo 여기서 예외처리 필요
+            */
+
+            //WSA SEND, WSA RECV 반환값을 받아보고
+            //에러인 코드에 대해서 처리.
+            /*
+            1024
+            24 / 1000 
+            1024
+            */
         }
         else {
             SAFE_DELETE(receivedIO->buffer)
@@ -142,9 +174,9 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     PlayerManager::GetInst()->PrintPlayers();
     //2. 룸정보 추가
     NetworkMessage netMessage;
-    netMessage.Append(L"-1");
-    netMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-    netMessage.Append(to_wstring((int)LexCallback::RoomInformationReceived));
+    netMessage.Append(-1);
+    netMessage.Append(((int)MessageInfo::ServerCallbacks));
+    netMessage.Append(((int)LexCallback::RoomInformationReceived));
     customProperty->EncodeToNetwork(netMessage);
     //3. 다른플레이어 정보 추가
     PlayerManager::GetInst()->EncodePlayersToNetwork(player, netMessage);
@@ -153,33 +185,33 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     //4. 서버 현재시간 추가
     long long time = PingManager::GetInst()->GetTimeNow();
     PingManager::GetInst()->RecordPing(player->actorNumber, time);
-    netMessage.Append(to_wstring(time));
+    netMessage.Append(to_string(time));
 
     //5. 전송
  /*   wstring message = netMessage.BuildNewSignedMessage();
     LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
     player->Send(roomInformationPacket);*/
-     wstring message = netMessage.BuildNewSignedMessage();
+     auto message = netMessage.BuildNewSignedMessage();
      player->Send(message, true);
      
      //6. RPC
      BufferedMessages::GetInst()->SendBufferedMessages(player);
      NetworkMessage eolMessage;
-     eolMessage.Append(to_wstring(player->actorNumber));
-     eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-     eolMessage.Append(to_wstring((int)LexCallback::OnLocalPlayerJoined));
+     eolMessage.Append((player->actorNumber));
+     eolMessage.Append(((int)MessageInfo::ServerCallbacks));
+     eolMessage.Append(((int)LexCallback::OnLocalPlayerJoined));
      message = eolMessage.BuildNewSignedMessage();
      // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
      player->Send(message, false);
-     cout << "Sent buffered RPCs"<<message.size() * sizeof(wchar_t) << endl;
+     cout << "Sent buffered RPCs"<<message.length() << endl;
 
      //7 .Notify others
      NetworkMessage broadcastMessage;
-     broadcastMessage.Append(L"-1");
-     broadcastMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-     broadcastMessage.Append(to_wstring((int)LexCallback::PlayerJoined));
+     broadcastMessage.Append(-1);
+     broadcastMessage.Append(((int)MessageInfo::ServerCallbacks));
+     broadcastMessage.Append(((int)LexCallback::PlayerJoined));
      player->EncodeToNetwork(broadcastMessage);
-     wstring brmsg = broadcastMessage.BuildNewSignedMessage();
+     auto brmsg = broadcastMessage.BuildNewSignedMessage();
      PlayerManager::GetInst()->BroadcastMessage(player->actorNumber, brmsg);
 }
 
@@ -196,11 +228,11 @@ void IOCP_Server::HandlePlayerDisconnect(LPPER_IO_DATA receivedIO, LPPER_HANDLE_
 
     //actorID , MessageInfo , callbackType, params
     NetworkMessage netMessage;
-    netMessage.Append(L"0");
+    netMessage.Append(0);
     netMessage.Append((int)MessageInfo::ServerCallbacks);
     netMessage.Append((int)LexCallback::PlayerDisconnected);
     netMessage.Append(disconnPlayer);
-    wstring msg = netMessage.BuildNewSignedMessage();
+    auto msg = netMessage.BuildNewSignedMessage();
     playerManager->BroadcastMessageAll(msg);
 
     if (playerManager->GetPlayerCount() == 0) {
@@ -222,5 +254,5 @@ void IOCP_Server::ResetServer() {
     BufferedMessages::GetInst()->RemoveAll();
     customProperty->RemoveAllProperties();
     PlayerManager::GetInst()->Reset();
-    wcout << L"Server Reset." << endl;
+    cout << "Server Reset." << endl;
 }

@@ -47,11 +47,11 @@ void PlayerManager::ChangeMasterClientOnDisconnect() {
 	masterPlayer->isMasterClient = true;   
 	
 	NetworkMessage eolMessage;
-	eolMessage.Append(L"0");
-	eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-	eolMessage.Append(to_wstring((int)LexCallback::MasterClientChanged));
-	eolMessage.Append(to_wstring(masterPlayer->actorNumber));
-	wstring message = eolMessage.BuildNewSignedMessage();
+	eolMessage.Append(0);
+	eolMessage.Append(((int)MessageInfo::ServerCallbacks));
+	eolMessage.Append(((int)LexCallback::MasterClientChanged));
+	eolMessage.Append((masterPlayer->actorNumber));
+	auto message = eolMessage.BuildNewSignedMessage();
 	//DWORD size = message.length();
 	//LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
 	cout << "Changing master on disconnect to"<<masterPlayer->actorNumber << endl;
@@ -82,7 +82,7 @@ void PlayerManager::BroadcastMessage(int& sourceActorNumber, char* sendBuffer, D
 		targetPlayer->Send(sendBuffer, bytesReceived);
 	}
 }*/
-void PlayerManager::BroadcastMessage(int& sourceActorNumber,wstring & message)
+void PlayerManager::BroadcastMessage(int& sourceActorNumber,string & message)
 {
 	for (auto entry : playerHash) {
 		Player* targetPlayer = entry.second;
@@ -91,7 +91,7 @@ void PlayerManager::BroadcastMessage(int& sourceActorNumber,wstring & message)
 		targetPlayer->Send(message,false);
 	}
 }
-void PlayerManager::BroadcastMessageAll(wstring& message)
+void PlayerManager::BroadcastMessageAll(string& message)
 {
 	for (auto entry : playerHash) {
 		entry.second->Send(message,false);
@@ -107,7 +107,7 @@ void PlayerManager::PrintPlayers()
 }
 
 void PlayerManager::EncodePlayersToNetwork(Player* joinedPlayer, NetworkMessage& netMessage) {
-	netMessage.Append(to_wstring(playerHash.size()));
+	netMessage.Append((playerHash.size()));
 	joinedPlayer->EncodeToNetwork(netMessage);
 	for (auto entry : playerHash) {
 		if (entry.first == joinedPlayer->actorNumber) continue;

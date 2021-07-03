@@ -10,7 +10,7 @@ public:
 	~MessageHandler() {
 	};
 
-	static void HandleMessage(NetworkMessage& netMessage);
+	static bool HandleMessage(NetworkMessage& netMessage);
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	//static void Handle_BroadcastString(NetworkMessage& netMessage);

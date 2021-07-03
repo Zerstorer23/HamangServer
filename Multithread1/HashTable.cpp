@@ -3,7 +3,7 @@
 #include "NetworkMessage.h"
 void HashTable::EncodeToNetwork(NetworkMessage& netMessage)
 {
-	netMessage.Append(to_wstring(customProperty.size()));
+	netMessage.Append(to_string(customProperty.size()));
 	for (auto entry : customProperty) {
 		netMessage.Append(entry.first);
 		netMessage.Append(entry.second->typeName);
@@ -13,7 +13,7 @@ void HashTable::EncodeToNetwork(NetworkMessage& netMessage)
 
 HashTable::HashTable()
 {
-	name = L"Server";
+	name = u8"Server"s;
 	propertyMutex = CreateMutex(NULL, FALSE, NULL);
 }
 
@@ -22,7 +22,7 @@ HashTable::~HashTable()
 	customProperty.clear();
 }
 
-void HashTable::SetProperty(wstring key, wstring typeName, wstring value)
+void HashTable::SetProperty(string key, string typeName, string value)
 {
 	shared_ptr<HashValue>  pairKey(new HashValue());
 	pairKey->typeName = typeName;

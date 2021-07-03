@@ -40,16 +40,17 @@ public:
 			string substring = str.substr(previous, current - previous);
 			if (substring.empty()) continue;// __#_#___# <-마지막 캐릭터 empty 스킵
 			tokens.push_back(substring);
-			//cout << substring << endl;
+		//	cout << substring << endl;
 			previous = current + 1;
 			current = (int)str.find(delim, previous);
 		}
 //		x.push_back(str.substr(previous, current - previous));
 		count = (int)tokens.size();
+		//cout << "Token size : "+count << endl;
 	//	tokens = x;
 	}
 	string GetNext() {
-		assert(iterator < tokens.size());
+		//cout << "Read  : " <<tokens[iterator] << endl;
 		return tokens[iterator++];
 	}
 	string PeekPrev() {
@@ -117,12 +118,8 @@ public:
 		return broadcastMessage;//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
 	}
 	string BuildNewSignedMessage() {
-		//중요. 처음에 net delim들어가면 안되지만 c#으로 가면서 사라져버림
 		//서버에서 새로 생성된 메세지용
-		/*
-		
-		*/
-		return u8"#LEX#"s + to_string(count + 2) + broadcastMessage;
+		return NET_DELIM + NET_SIG+NET_DELIM+ to_string(count + 2).append(broadcastMessage);
 	}
 	void PrintOut() {
 		int iter = beginPoint;

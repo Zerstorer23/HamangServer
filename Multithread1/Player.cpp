@@ -20,11 +20,10 @@ void Player::SetActorNumber(int id)
 void Player::Send(string message, bool isInitial)
 {
 	if (!isConnected && !isInitial) return;
+	//cout << "\t\t" << message.length() << u8"send Message :"s << message << " TO " << actorNumber << endl;
 	//string u8message;
-	//NetworkMessage::convert_unicode_to_utf8_string(u8message, message.c_str(), message.length());
 	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CreateMessageBuffer(message, WRITE);
 	SOCKET targetSocket = handleInfo->clientSocket;
-	DEBUG_MODE cout << "["<< message << "] to Player " << actorNumber << endl;
 	WSASend(targetSocket, &(cloneIO->wsaBuf), 1, NULL, 0, &(cloneIO->overlapped), NULL);
 }
 

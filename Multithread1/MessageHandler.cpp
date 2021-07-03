@@ -9,7 +9,7 @@
 #include "HashTable.h"
 
 
-bool MessageHandler::HandleMessage(NetworkMessage& netMessage)
+void MessageHandler::HandleMessage(NetworkMessage& netMessage)
 {
     while (netMessage.HasNext()) {
         netMessage.SetBeginPoint();
@@ -62,7 +62,6 @@ bool MessageHandler::HandleMessage(NetworkMessage& netMessage)
         }
        DEBUG_MODE cout << endl;
        DEBUG_MODE cout << endl;
-       return true;
     }
 
 
@@ -134,29 +133,9 @@ void MessageHandler::Handle_ServerRequest_ChangeMasterClient(NetworkMessage& net
    // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
     PlayerManager::GetInst()->BroadcastMessageAll(message);
 }
-void MessageHandler::Handle_ServerRequest_SendBufferedRPCs(Player* target) {
-  /*  BufferedMessages::GetInst()->SendBufferedMessages(target);
+/*void MessageHandler::Handle_ServerRequest_SendBufferedRPCs(Player* target) {
 
-    NetworkMessage eolMessage;
-    eolMessage.Append(to_wstring(target->actorNumber));
-    eolMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-    eolMessage.Append(to_wstring((int)LexCallback::OnLocalPlayerJoined));
-    wstring message = eolMessage.BuildNewSignedMessage();
-   // LPPER_IO_DATA sendIO = IOCP_Server::GetInst()->CreateMessage(message);
-    target->Send(message,false);
-    cout << "Sent buffered RPCs" << endl;
-
-    //actorID , MessageInfo , callbackType, params
-// PlayerJoined는 로컬제외 전체방송
-    NetworkMessage broadcastMessage;
-    broadcastMessage.Append(L"-1");
-    broadcastMessage.Append(to_wstring((int)MessageInfo::ServerCallbacks));
-    broadcastMessage.Append(to_wstring((int)LexCallback::PlayerJoined));
-    target->EncodeToNetwork(broadcastMessage);
-    wstring brmsg = broadcastMessage.BuildNewSignedMessage();
-    PlayerManager::GetInst()->BroadcastMessage(target->actorNumber, brmsg);
-    cout << "IO Created" << endl;*/
-}
+}*/
 
 void MessageHandler::Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage) {
     assert(netMessage.HasNext());
@@ -184,9 +163,9 @@ void MessageHandler::Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& ne
     int requestRPC = stoi(netMessage.GetNext());
     Player* target = PlayerManager::GetInst()->playerHash[targetPlayerNumber];
     PingManager::GetInst()->TimeSynch_Receive(target);
-    if (requestRPC) {
+ /*   if (requestRPC) {
         Handle_ServerRequest_SendBufferedRPCs(target);
-    }
+    }*/
 }
 void MessageHandler::Handle_ServerRequest_Ping(NetworkMessage& netMessage) {
     //actorID , MessageInfo , callbackType, params

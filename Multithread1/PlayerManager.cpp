@@ -87,7 +87,6 @@ void PlayerManager::BroadcastMessage(int& sourceActorNumber,string & message)
 	for (auto entry : playerHash) {
 		Player* targetPlayer = entry.second;
 		if (targetPlayer->actorNumber == sourceActorNumber) continue;//자기자신은 제외
-
 		targetPlayer->Send(message,false);
 	}
 }

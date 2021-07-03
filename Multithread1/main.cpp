@@ -12,13 +12,6 @@ int main()
 {
     cout.imbue(locale("korean"));
     SetConsoleOutputCP(65001);
-   // cout.imbue(locale("korean"));
-
-    string u8s = u8"abc가나다"s;
-    cout << u8s.length() << endl;
-    auto u16s = u"abc1가나다"s;
-//    string unknown = u8s + u16s;
-    wstring unis = L"abc가나다";
 
     ;
     /*

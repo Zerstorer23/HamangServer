@@ -71,11 +71,7 @@ public:
 	}
 	LPPER_IO_DATA CreateMessageBuffer(string u8message, int rwMode) {
 		char* original =(char * ) u8message.c_str();
-		int bufferSize = u8message.size();
-		/*
-		* TODO std::bad_alloc
-		https://ju3un.github.io/c++-new-excepiton/
-		*/
+		int bufferSize = u8message.length();
 		LPPER_IO_DATA cloneIO = new PER_IO_DATA();
 		memset(&(cloneIO->overlapped), 0, sizeof(OVERLAPPED));
 		cloneIO->buffer = new char[BUFFER];

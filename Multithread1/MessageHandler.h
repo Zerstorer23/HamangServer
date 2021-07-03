@@ -10,11 +10,11 @@ public:
 	~MessageHandler() {
 	};
 
-	static bool HandleMessage(NetworkMessage& netMessage);
+	static void HandleMessage(NetworkMessage& netMessage);
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	//static void Handle_BroadcastString(NetworkMessage& netMessage);
-	static void Handle_ServerRequest_SendBufferedRPCs(Player* target);
+	//static void Handle_ServerRequest_SendBufferedRPCs(Player* target);
 	static void Handle_ServerRequest_RemoveRPCs(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_ReceiveModifiedTime(NetworkMessage& netMessage);
 	static void Handle_ServerRequest_ChangeMasterClient(NetworkMessage& netMessage);

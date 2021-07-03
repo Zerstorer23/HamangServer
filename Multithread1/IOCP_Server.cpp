@@ -107,13 +107,14 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             //wstring message = arr;
             string message;
             if (bytesReceived < BUFFER) {
+
+            }
                 //. 0안넣으면 출력망함.
                 // 근데 끊겨서 들어오는 겨우 마지막자를 0넣으면 데이터 변조임.
-                receivedIO->buffer[bytesReceived] = 0;
-            }
+            receivedIO->buffer[bytesReceived] = 0;
             message = receivedIO->buffer;
           //  NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
-           // DEBUG_MODE   cout <<message.length() <<u8" Message :"s << message << endl;
+        DEBUG_MODE  cout <<"Received "<<message.length() <<u8" Message :"s << message <<" from "<<sourcePlayer->actorNumber<< endl;
           //  cout <<" Message :" << utf8message << endl;
           // /*
           // TODO 32kb보다 큰 데이터가 잘려서 들어오는 경우가 실제 있음.
@@ -121,18 +122,15 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
             //2. split하고
             NetworkMessage netMessage;
             netMessage.Split(message, '#');
-            bool IsCompleteMessage = messageHandler.HandleMessage(netMessage);
+            messageHandler.HandleMessage(netMessage);
             if (netMessage.HasMessageToBroadcast()) {
                 string msg = netMessage.BuildCopiedMessage();
-                 cout << message.length() << u8"send Message :"s << message << endl;
+              //  cout << message.length() << u8"send Message :"s << message << endl;
                 PlayerManager::GetInst()->BroadcastMessage(sourcePlayer->actorNumber, msg);
              //   PlayerManager::GetInst()->BroadcastMessageAll(msg);
             }
 
             // 다시 읽기모드로 재활용
-        //    SAFE_DELETE(receivedIO->buffer)
-         //   SAFE_DELETE(receivedIO)
-          //  LPPER_IO_DATA ioInfo = CreateEmptyBuffer(BUFFER, READ);
             //WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
             IOCP_Server::RecycleIO(receivedIO,READ);
             /*
@@ -192,6 +190,7 @@ void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& cl
     LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
     player->Send(roomInformationPacket);*/
      auto message = netMessage.BuildNewSignedMessage();
+     cout<<"Sent to client : "<< message<<endl;
      player->Send(message, true);
      
      //6. RPC

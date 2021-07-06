@@ -37,7 +37,6 @@ void BufferedMessages::RemovePlayerNr(int playerNr) {
 			iter = messageQueue.erase(iter);
 		}
 		else {
-			DEBUG_MODE	cout << (i++) << "/" << messageQueue.size() << ": " << (*iter)->message << endl;
 			iter++;
 		}
 	}
@@ -57,7 +56,6 @@ void BufferedMessages::RemoveViewID(int viewID) {
 			iter = messageQueue.erase(iter);
 		}
 		else {
-			DEBUG_MODE	cout <<(i++)<<"/"<< messageQueue.size() <<": "<<(*iter)->message << endl;
 			iter++;
 		}
 	}

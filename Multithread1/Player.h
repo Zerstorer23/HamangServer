@@ -13,7 +13,6 @@ public:
 	bool isMasterClient;
 	bool isConnected;
 	shared_ptr<HashTable> customProperty;
-
 	Player();
 	~Player() {
 		//handleInfo는 Server.cpp가 삭제함

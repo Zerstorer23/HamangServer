@@ -78,13 +78,15 @@ public:
 		memcpy(cloneIO->buffer, original, bufferSize);//
 		cloneIO->wsaBuf.len = bufferSize;
 		cloneIO->wsaBuf.buf = cloneIO->buffer;//
+	
 		cloneIO->rwMode = rwMode;
 		return cloneIO;
 	}
-	static void RecycleIO(LPPER_IO_DATA receivedIO, int rwMode) {
+	static void RecycleIO(LPPER_IO_DATA receivedIO, int rwMode, int offset) {
 		memset(&(receivedIO->overlapped), 0, sizeof(OVERLAPPED));
-		receivedIO->wsaBuf.len = BUFFER;
-		receivedIO->wsaBuf.buf = receivedIO->buffer;
+		receivedIO->wsaBuf.len = BUFFER - offset;
+		receivedIO->wsaBuf.buf = receivedIO->buffer + offset;
+		assert(receivedIO->wsaBuf.len != 0);
 		receivedIO->rwMode = rwMode;
 	}
 
@@ -106,7 +108,7 @@ public:
 	static void Append(wstring& s, wstring& broadcastString);
 	
 	void SetSocketSize(SOCKET& socket) {
-		int bufSize = BUFFER;
+		int bufSize =  BUFFER;
 		int sendBuffer = 0; // recv 0 아니면 buffer
 		//send는 0이어도 됨..
 		//recv

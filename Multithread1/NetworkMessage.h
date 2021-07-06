@@ -8,10 +8,11 @@ public:
 	//static wstring ServerSignature;
 	string broadcastMessage;
 	
-	/*wstring* wholeString;
-	wstring incompleteMessage;
-	bool isIncomplete;*/
 	vector<string> tokens;
+	vector<int> startPoints;
+	int incompleteResumePoint;
+	//int lastDelimPoint;
+
 	int count;
 	int sentActorNr;
 	int targetViewID;
@@ -24,8 +25,8 @@ public:
 		count = 0;
 		beginPoint = 0;
 		endPoint = 0;
-	/*	incompleteMessage;
-		isIncomplete = false;*/
+		incompleteResumePoint =0;
+		//lastDelimPoint =-1;
 	}
 	~NetworkMessage() {
 
@@ -40,9 +41,13 @@ public:
 			string substring = str.substr(previous, current - previous);
 			if (substring.empty()) continue;// __#_#___# <-마지막 캐릭터 empty 스킵
 			tokens.push_back(substring);
-		//	cout << substring << endl;
+			startPoints.push_back(previous);
+			//cout << substring << endl;
 			previous = current + 1;
 			current = (int)str.find(delim, previous);
+			//if (current != string::npos) {
+			//	lastDelimPoint = current;
+			//}
 		}
 //		x.push_back(str.substr(previous, current - previous));
 		count = (int)tokens.size();
@@ -84,13 +89,18 @@ public:
 	void SetBeginPoint() {
 		beginPoint = iterator;
 	}
-	void SetEndPoint(int lengthOfMessage) {
+	bool SetEndPoint(int lengthOfMessage) {
 		endPoint = beginPoint + lengthOfMessage;
-		if (endPoint > tokens.size()) {
-			//	cout << "Merge error End point set " << endPoint << " token size" << tokens.size() << endl;
-			//DelayString();
+		int beginOfEndBytes = startPoints[beginPoint];
+		//cout << "Begin of end bytes " << beginOfEndBytes << endl;
+		if (endPoint > tokens.size() ) {
+			incompleteResumePoint = beginOfEndBytes;
+			//assert(startPoints[beginPoint] > 0);//Need larger buffer; TODO 애초에 버퍼크기가 부족한거임 이건 해결해야하나?
+			return false;
 		}
+		return true;
 	}
+
 	/*void DelayString() {
 		int size = tokens.size();
 		incompleteMessage = NET_SIG;

@@ -1,6 +1,7 @@
 ﻿  BufferedMessages.cpp
   HashTable.cpp
   IOCP_Server.cpp
+D:\VSProjects\HamangServer\Multithread1\IOCP_Server.cpp(33,20): warning C4996: 'WSASocketA': Use WSASocketW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
   MessageHandler.cpp
   NetworkMessage.cpp
   PingManager.cpp

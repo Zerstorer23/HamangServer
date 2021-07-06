@@ -30,11 +30,11 @@ TODO 별도로 Merge 과저없이도 buffer에 뭉쳐서 들어오고 나가는 
 
 1024 1024하니까 bad_alloc나옴
 */
-#define BUFFER 128 * 1024 //128에서 성공
+#define BUFFER 128 * 1024//128 * 1024 에서 성공, 256으로 잘림 실험
 #define READ 3
 #define WRITE 5
 #define EASY_LOG 0
-#define CRITICAL_LOG 0
+#define CRITICAL_LOG 1
 
 #define MAX_CLIENT 20
 #define	SAFE_DELETE(p)	if(p)	{ delete p; p = nullptr; }
@@ -71,11 +71,11 @@ typedef struct {
 
 typedef struct {
 	OVERLAPPED overlapped;//구조체의 주소는 첫변수 overlap의주소
-	WSABUF wsaBuf;//WSAREcv
-	//char buffer[BUFFER]; //=malloc() new char[](BUFFER)
-	char* buffer; //= nullptr;// = new char[BUFFER];
+	WSABUF wsaBuf;
+	char* buffer;
 	int rwMode;
 }PER_IO_DATA, * LPPER_IO_DATA;
+
 typedef struct {
 	int playerActorNr;
 	int viewID;

@@ -11,6 +11,7 @@ public:
 	};
 
 	static void HandleMessage(NetworkMessage& netMessage);
+	static bool CheckMessageComplete(NetworkMessage& netMessage);
 	static void Handle_PropertyRequest(NetworkMessage& netMessage);
 	static void Handle_ServerRequest(NetworkMessage& netMessage);
 	//static void Handle_BroadcastString(NetworkMessage& netMessage);

@@ -1,4 +1,4 @@
-#include "IOCP_Server.h"
+ï»¿#include "IOCP_Server.h"
 #include "NetworkMessage.h"
 #include "PlayerManager.h"
 #include "Player.h"
@@ -21,12 +21,12 @@ IOCP_Server::IOCP_Server()
 
 void IOCP_Server::OpenServer()
 {
-    //1. CP¿ÀºêÁ§Æ® »ı¼º. ¸¶Áö¸·ÀÎÀÚ 0 -> ÄÚ¾îÀÇ ¼ö¸¸Å­ cp¿ÀºêÁ§Æ®¿¡ ½º·¹µå¸¦ ÇÒ´ç
-    hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);//¸¶Áö¸·ÀÎÀÚ¸¸ Áß¿ä
+    //1. CPì˜¤ë¸Œì íŠ¸ ìƒì„±. ë§ˆì§€ë§‰ì¸ì 0 -> ì½”ì–´ì˜ ìˆ˜ë§Œí¼ cpì˜¤ë¸Œì íŠ¸ì— ìŠ¤ë ˆë“œë¥¼ í• ë‹¹
+    hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);//ë§ˆì§€ë§‰ì¸ìë§Œ ì¤‘ìš”
     GetSystemInfo(&sysInfo);
     unsigned int numThread = sysInfo.dwNumberOfProcessors;
     for (unsigned int i = 0; i < numThread; i++) {
-        //ÄÚ¾î ¼ö¸¸Å­ ½º·¹µå »ı¼º
+        //ì½”ì–´ ìˆ˜ë§Œí¼ ìŠ¤ë ˆë“œ ìƒì„±
         _beginthreadex(NULL, 0, EchoThreadMain, (LPVOID)hCompletionPort, 0, NULL);
         cout << "Created thread " << i << endl;
     }
@@ -41,10 +41,10 @@ void IOCP_Server::OpenServer()
     res = listen(serverSocket, 5);
     assert(res != SOCKET_ERROR);
 
-   //1. ¹¶ÃÄ º¸³»±â
+   //1. ë­‰ì³ ë³´ë‚´ê¸°
     //2.
 
-    //receive buffer 1024 /600 , 600 ->Ã¹ 600¸¸¹Ş°í
+    //receive buffer 1024 /600 , 600 ->ì²« 600ë§Œë°›ê³ 
     //buffer 1024
     LPPER_HANDLE_DATA handleInfo = nullptr;
     int receivedBytes, flags = 0;
@@ -52,24 +52,24 @@ void IOCP_Server::OpenServer()
         SOCKET clientSocket;
         SOCKADDR_IN clientAddress;
         int addressLength = sizeof(clientAddress);
-        //Å¬¶óÀÌ¾ğÆ® ¼ÒÄÏ »ı¼º
+        //í´ë¼ì´ì–¸íŠ¸ ì†Œì¼“ ìƒì„±
         clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddress, &addressLength);
         SetSocketSize(clientSocket);
         handleInfo = new PER_HANDLE_DATA();
         handleInfo->clientSocket = clientSocket;
         memcpy(&(handleInfo->clientAddress), &clientAddress, addressLength);
 
-        //2. CP¿ÀºêÁ§Æ®, ¼ÒÄÏ ¿¬°á
-        //¼ÒÄÏ¿¡ overlappedio°¡ ¿Ï·áµÇ¸é cp·Î Á¤º¸ ¼Û½Å, 
+        //2. CPì˜¤ë¸Œì íŠ¸, ì†Œì¼“ ì—°ê²°
+        //ì†Œì¼“ì— overlappedioê°€ ì™„ë£Œë˜ë©´ cpë¡œ ì •ë³´ ì†¡ì‹ , 
         CreateIoCompletionPort((HANDLE)clientSocket, hCompletionPort, (ULONG_PTR)handleInfo, 0); 
-        ///->ÀÌ ´Ü°è¿¡¼­ ¼ÒÄÏ ¸®½ºÆ®¸¦ ¸¸µé ÇÊ¿ä°¡ ÀÖÀ½
+        ///->ì´ ë‹¨ê³„ì—ì„œ ì†Œì¼“ ë¦¬ìŠ¤íŠ¸ë¥¼ ë§Œë“¤ í•„ìš”ê°€ ìˆìŒ
         HandlePlayerJoin(handleInfo,clientAddress);
 
       
-        //IO ReadÀÌº¥Æ® »ı¼ºÈÄ ±¸µ¶
+        //IO Readì´ë²¤íŠ¸ ìƒì„±í›„ êµ¬ë…
         LPPER_IO_DATA ioInfo = CreateEmptyBuffer(BUFFER,READ);
         WSARecv(handleInfo->clientSocket, &(ioInfo->wsaBuf), 1, (LPDWORD)&receivedBytes, (LPDWORD)&flags, &(ioInfo->overlapped), NULL);
-        //&(ioInfo->overlapped -> GetQueue...ÀÇ 4¹øÂ°  ioInfo·Î µé¾î°¨
+        //&(ioInfo->overlapped -> GetQueue...ì˜ 4ë²ˆì§¸  ioInfoë¡œ ë“¤ì–´ê°
     }
     return;
 }
@@ -87,72 +87,75 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
         clientSocket = handleInfo->clientSocket;
         if (receivedIO->rwMode == READ) {
             if (bytesReceived == 0) {
-                //TODO 
-                //Á¾·á
+                cout << "ë“¤ì–´ì˜¨ ë°ì´í„° ì—†ìŒ. ì¢…ë£Œ" << endl;
                 HandlePlayerDisconnect(receivedIO,handleInfo, sourcePlayer);
                 continue;
             }
             
-
-            //1. Contents
-            /*
-            
-            1. ¿øº»À¸·Î ¹Ş°í
-            2. ÄÁÅÙÃ÷ ´ÜÀ§·Î °¢ ÇÔ¼ö°¡ º¯È¯ / ¿ªº¯È¯ ½Ç½Ã
-
-            */
-           // string utf8message = ;
-            //wchar_t arr[BUFFER];
-            //NetworkMessage::convert_utf8_to_unicode_string2(receivedIO->buffer, arr , bytesReceived);
-            //wstring message = arr;
             string message;
-            if (bytesReceived < BUFFER) {
 
+           // receivedIO->buffer = receivedIO->buffer - sourcePlayer->lastBufferPointer;
+          //  bytesReceived += sourcePlayer->lastBufferPointer;
+            if (bytesReceived < receivedIO->wsaBuf.len) {
+                receivedIO->wsaBuf.buf[bytesReceived] = 0;
             }
-                //. 0¾È³ÖÀ¸¸é Ãâ·Â¸ÁÇÔ.
-                // ±Ùµ¥ ²÷°Ü¼­ µé¾î¿À´Â °Ü¿ì ¸¶Áö¸·ÀÚ¸¦ 0³ÖÀ¸¸é µ¥ÀÌÅÍ º¯Á¶ÀÓ.
-            receivedIO->buffer[bytesReceived] = 0;
             message = receivedIO->buffer;
-          //  NetworkMessage::convert_utf8_to_unicode_string(message, receivedIO->buffer, bytesReceived);
-        DEBUG_MODE  cout <<"Received "<<message.length() <<u8" Message :"s << message <<" from "<<sourcePlayer->actorNumber<< endl;
-          //  cout <<" Message :" << utf8message << endl;
-          // /*
-          // TODO 32kbº¸´Ù Å« µ¥ÀÌÅÍ°¡ Àß·Á¼­ µé¾î¿À´Â °æ¿ì°¡ ½ÇÁ¦ ÀÖÀ½.
-          // */
-            //2. splitÇÏ°í
+            auto last = receivedIO->wsaBuf.buf[bytesReceived-1];
+            bool endWithDelim = last == u8'#';
+            /*
+             ëª¨ë“  íŒ¨í‚· ëì€ #. ì´ê²Œ ì—†ìœ¼ë©´ ì˜ë¦°ê±°ì„
+            */
+            
+            cout << "Received [" << message.length()<< u8"] Message :"s << message << endl;// << " from " << sourcePlayer->actorNumber
+            
+            //2. splití•˜ê³ 
             NetworkMessage netMessage;
             netMessage.Split(message, '#');
             messageHandler.HandleMessage(netMessage);
             if (netMessage.HasMessageToBroadcast()) {
                 string msg = netMessage.BuildCopiedMessage();
-              //  cout << message.length() << u8"send Message :"s << message << endl;
                 PlayerManager::GetInst()->BroadcastMessage(sourcePlayer->actorNumber, msg);
              //   PlayerManager::GetInst()->BroadcastMessageAll(msg);
             }
-
-            // ´Ù½Ã ÀĞ±â¸ğµå·Î ÀçÈ°¿ë
+            int startPoint = netMessage.incompleteResumePoint;
+            int length = 0;
+            if (startPoint > 0 || !endWithDelim) {
+                length = BUFFER - startPoint;
+                memcpy(receivedIO->buffer, receivedIO->buffer + startPoint, length);
+            }
+            IOCP_Server::RecycleIO(receivedIO, READ, length);
+            int res = WSARecv(clientSocket, &(receivedIO->wsaBuf), 1, NULL, &flags, &(receivedIO->overlapped), NULL);
+            if (res != 0) {
+                int cause = WSAGetLastError();
+                if (cause != WSA_IO_PENDING) {
+                    cout << "Cause " << cause << endl; //https://www.joinc.co.kr/w/man/4100/WSARecv
+                    HandlePlayerDisconnect(receivedIO, handleInfo, sourcePlayer);
+                }
+            }
+            // ë‹¤ì‹œ ì½ê¸°ëª¨ë“œë¡œ ì¬í™œìš©
             //WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
-            IOCP_Server::RecycleIO(receivedIO,READ);
+         
             /*
-            * 1. memcpy ( Àß¸°ºÎºĞÀ» »õ ¹öÆÛ ¾Õ¿¡)
-            * 2.¹Ì¸® Ã¤¿î¸¸Å­ ++ÇØ¼­ ¹ŞÀ½
-            
+            * 1. memcpy ( ì˜ë¦°ë¶€ë¶„ì„ ìƒˆ ë²„í¼ ì•ì—)
+            * 2.ë¯¸ë¦¬ ì±„ìš´ë§Œí¼ ++í•´ì„œ ë°›ìŒ
+            memcpy recievedio buffer to wwsabuf.
+            receivedIO->wsaBuf.buf = receivedIO->buffer + 24;
+            receivedIO->wsaBuf.len = 1024 - 20;
             */
-        //    receivedIO->wsaBuf.buf = receivedIO->buffer + 24;
-         //   receivedIO->wsaBuf.len = 1024 - 20;
-            //¼ÒÄÏ ¹öÆÛ¾È¿¡ ³²Àº°Ç ´ÙÀ½¿¡ ¶Ç ¹Ş¾Æ¿ÍÁü
-            WSARecv(clientSocket, &(receivedIO->wsaBuf), 1, NULL, &flags, &(receivedIO->overlapped), NULL);
+     
+            //ì†Œì¼“ ë²„í¼ì•ˆì— ë‚¨ì€ê±´ ë‹¤ìŒì— ë˜ ë°›ì•„ì™€ì§
+           // cout << "res out"<< res << endl;
+            /*if (res == SOCKET_ERROR) {
+                cout << "Player out" << endl;
+                HandlePlayerDisconnect(receivedIO, handleInfo, sourcePlayer);
+            }*/
             /*
-            todo ¿©±â¼­ ¿¹¿ÜÃ³¸® ÇÊ¿ä
+            todo ì—¬ê¸°ì„œ ì˜ˆì™¸ì²˜ë¦¬ í•„ìš”
             */
 
-            //WSA SEND, WSA RECV ¹İÈ¯°ªÀ» ¹Ş¾Æº¸°í
-            //¿¡·¯ÀÎ ÄÚµå¿¡ ´ëÇØ¼­ Ã³¸®.
-            /*
-            1024
-            24 / 1000 
-            1024
-            */
+            //WSA SEND, WSA RECV ë°˜í™˜ê°’ì„ ë°›ì•„ë³´ê³ 
+            //ì—ëŸ¬ì¸ ì½”ë“œì— ëŒ€í•´ì„œ ì²˜ë¦¬.
+
         }
         else {
             SAFE_DELETE(receivedIO->buffer)
@@ -164,28 +167,28 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
 }
 
 void IOCP_Server::HandlePlayerJoin(LPPER_HANDLE_DATA handleInfo, SOCKADDR_IN& clientAddress) {
-    // 1.ÇÃ·¹ÀÌ¾î Ãß°¡
+    // 1.í”Œë ˆì´ì–´ ì¶”ê°€
     char ipname[128];
     inet_ntop(AF_INET, (void*)&clientAddress.sin_addr, (PSTR)ipname, sizeof(ipname));
     printf("Connected client IP : %s \n", ipname);
     Player* player = PlayerManager::GetInst()->CreatePlayer(handleInfo);
     PlayerManager::GetInst()->PrintPlayers();
-    //2. ·ëÁ¤º¸ Ãß°¡
+    //2. ë£¸ì •ë³´ ì¶”ê°€
     NetworkMessage netMessage;
     netMessage.Append(-1);
     netMessage.Append(((int)MessageInfo::ServerCallbacks));
     netMessage.Append(((int)LexCallback::RoomInformationReceived));
     customProperty->EncodeToNetwork(netMessage);
-    //3. ´Ù¸¥ÇÃ·¹ÀÌ¾î Á¤º¸ Ãß°¡
+    //3. ë‹¤ë¥¸í”Œë ˆì´ì–´ ì •ë³´ ì¶”ê°€
     PlayerManager::GetInst()->EncodePlayersToNetwork(player, netMessage);
     //message = message.append(playerManager.EncodePlayersToNetwork(player));
     
-    //4. ¼­¹ö ÇöÀç½Ã°£ Ãß°¡
+    //4. ì„œë²„ í˜„ì¬ì‹œê°„ ì¶”ê°€
     long long time = PingManager::GetInst()->GetTimeNow();
     PingManager::GetInst()->RecordPing(player->actorNumber, time);
     netMessage.Append(to_string(time));
 
-    //5. Àü¼Û
+    //5. ì „ì†¡
  /*   wstring message = netMessage.BuildNewSignedMessage();
     LPPER_IO_DATA roomInformationPacket = CreateMessage(message);
     player->Send(roomInformationPacket);*/

@@ -8,6 +8,18 @@
 #include "MessageHandler.h"
 #include "HashTable.h"
 
+bool MessageHandler::CheckMessageComplete(NetworkMessage& netMessage)
+{
+
+    if (EASY_LOG) netMessage.PrintOut();
+    //2. 메세지 길이 읽기
+    if (!netMessage.HasNext()) {
+        return false;
+    }
+    int lengthOfMessages = stoi(netMessage.GetNext());
+    bool isComplete = netMessage.SetEndPoint(lengthOfMessages);
+    return isComplete;
+}
 
 void MessageHandler::HandleMessage(NetworkMessage& netMessage)
 {
@@ -15,23 +27,19 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
         netMessage.SetBeginPoint();
         //1. Check signature
         string signature = netMessage.GetNext();
-
-        
         bool isMyPacket = (signature.compare(NET_SIG) == 0);
         if (!isMyPacket) {
             cout << u8"SIG :[" << signature << "] vs " << NET_SIG << endl;
             cout << u8"NOT MY PACKET " << endl;
             continue;
         }
-        if(EASY_LOG) netMessage.PrintOut();
-
-        //2. 메세지 길이 읽기
-        int lengthOfMessages = stoi(netMessage.GetNext());
+        bool isComplete = CheckMessageComplete(netMessage);
+        if (!isComplete) return;
         //3. 메세지 발언자 읽기
         netMessage.sentActorNr = stoi(netMessage.GetNext());
         //4. 메세지 타입 읽기
         MessageInfo messageInfo = (MessageInfo)stoi(netMessage.GetNext());
-        netMessage.SetEndPoint(lengthOfMessages);
+
        // cout << signature << "Is my packet from " << netMessage.beginPoint << " to " << netMessage.endPoint << endl;
         if (messageInfo == MessageInfo::ServerRequest) {
            // cout << "Received server request" << endl;
@@ -52,7 +60,6 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
                 //모든 방송메세지는 0 sig / 1 len / 2 sender / 3 type / 4 viewID 형식
                 //저장이 필요한 타입들;
                 netMessage.targetViewID = stoi(netMessage.GetNext());
-                DEBUG_MODE cout << u8"RPC Saved "s << message << endl;
                 BufferedMessages::GetInst()->EnqueueMessage(netMessage.sentActorNr, netMessage.targetViewID, message);
             }
   /*          if (messageInfo == MessageInfo::Destroy) {
@@ -60,13 +67,13 @@ void MessageHandler::HandleMessage(NetworkMessage& netMessage)
             }*/
             netMessage.SetIteratorToEnd();
         }
-       DEBUG_MODE cout << endl;
-       DEBUG_MODE cout << endl;
+
     }
 
 
 
 }
+
 
 void MessageHandler::Handle_PropertyRequest(NetworkMessage& netMessage)
 {

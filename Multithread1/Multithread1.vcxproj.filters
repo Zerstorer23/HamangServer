@@ -22,6 +22,12 @@
     <Filter Include="03 Network">
       <UniqueIdentifier>{b31833a2-51af-4481-b4dd-bb6d1cbfcfca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04 DB">
+      <UniqueIdentifier>{98f9fb36-07f4-49ed-b3d2-37f4dd0f4648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04 DB\SQLite">
+      <UniqueIdentifier>{b6336ce8-100e-4a91-a37b-47e3e94e4278}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PlayerManager.cpp">
@@ -50,6 +56,15 @@
     </ClCompile>
     <ClCompile Include="HashTable.cpp">
       <Filter>02 Server</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager.cpp">
+      <Filter>04 DB</Filter>
+    </ClCompile>
+    <ClCompile Include="sqlite3\shell.c">
+      <Filter>04 DB\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="sqlite3\sqlite3.c">
+      <Filter>04 DB\SQLite</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,10 +101,24 @@
     <ClInclude Include="HashTable.h">
       <Filter>02 Server</Filter>
     </ClInclude>
+    <ClInclude Include="DBManager.h">
+      <Filter>04 DB</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3\sqlite3.h">
+      <Filter>04 DB\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3\sqlite3ext.h">
+      <Filter>04 DB\SQLite</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ServerRule.txt">
       <Filter>헤더 파일</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hamangDB.db">
+      <Filter>04 DB</Filter>
+    </None>
   </ItemGroup>
 </Project>

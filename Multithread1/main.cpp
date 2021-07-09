@@ -2,6 +2,7 @@
 #include "PlayerManager.h"
 #include "PingManager.h"
 #include "BufferedMessages.h"
+#include "DBManager.h"
 #include <io.h>
 #include <fcntl.h>
 #include <io.h>
@@ -43,6 +44,8 @@ int main()
     IOCP_Server * myServer =IOCP_Server::GetInst();
     PlayerManager* playerManager = PlayerManager::GetInst();
     PingManager* pingManager = PingManager::GetInst();
+    DBManager* dbManager = DBManager::GetInst();
+    dbManager->OpenDatabase();
     BufferedMessages* messageBuffer = BufferedMessages::GetInst();
     myServer->InitialiseServer(ip, port);
     myServer->OpenServer();

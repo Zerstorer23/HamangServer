@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BufferedMessages.cpp" />
+    <ClCompile Include="DBManager.cpp" />
     <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="IOCP_Server.cpp" />
     <ClCompile Include="main.cpp" />
@@ -152,9 +153,12 @@
     <ClCompile Include="PingManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerManager.cpp" />
+    <ClCompile Include="sqlite3\shell.c" />
+    <ClCompile Include="sqlite3\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferedMessages.h" />
+    <ClInclude Include="DBManager.h" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="IOCP_Server.h" />
     <ClInclude Include="MessageHandler.h" />
@@ -164,10 +168,15 @@
     <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedEnums.h" />
+    <ClInclude Include="sqlite3\sqlite3.h" />
+    <ClInclude Include="sqlite3\sqlite3ext.h" />
     <ClInclude Include="Values.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ServerRule.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hamangDB.db" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

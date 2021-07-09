@@ -30,7 +30,7 @@ void IOCP_Server::OpenServer()
         _beginthreadex(NULL, 0, EchoThreadMain, (LPVOID)hCompletionPort, 0, NULL);
         cout << "Created thread " << i << endl;
     }
-    serverSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+    serverSocket = WSASocketW(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
     SetSocketSize(serverSocket);
     SetSocketReusable(serverSocket);
     BindAddress(serverAddress, 
@@ -132,30 +132,6 @@ unsigned WINAPI IOCP_Server::EchoThreadMain(LPVOID pCompletionPort) {
                     HandlePlayerDisconnect(receivedIO, handleInfo, sourcePlayer);
                 }
             }
-            // 다시 읽기모드로 재활용
-            //WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
-         
-            /*
-            * 1. memcpy ( 잘린부분을 새 버퍼 앞에)
-            * 2.미리 채운만큼 ++해서 받음
-            memcpy recievedio buffer to wwsabuf.
-            receivedIO->wsaBuf.buf = receivedIO->buffer + 24;
-            receivedIO->wsaBuf.len = 1024 - 20;
-            */
-     
-            //소켓 버퍼안에 남은건 다음에 또 받아와짐
-           // cout << "res out"<< res << endl;
-            /*if (res == SOCKET_ERROR) {
-                cout << "Player out" << endl;
-                HandlePlayerDisconnect(receivedIO, handleInfo, sourcePlayer);
-            }*/
-            /*
-            todo 여기서 예외처리 필요
-            */
-
-            //WSA SEND, WSA RECV 반환값을 받아보고
-            //에러인 코드에 대해서 처리.
-
         }
         else {
             SAFE_DELETE(receivedIO->buffer)

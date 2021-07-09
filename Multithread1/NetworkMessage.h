@@ -56,10 +56,12 @@ public:
 	}
 	string GetNext() {
 		//cout << "Read  : " <<tokens[iterator] << endl;
+	//	int i = iterator;
+		
 		return tokens[iterator++];
 	}
-	string PeekPrev() {
-		return tokens[iterator - 1];
+	int GetNextInt() {
+		return stoi(GetNext());
 	}
 
 	void Append(string s)
@@ -70,9 +72,7 @@ public:
 	}
 	void Append(int s)
 	{
-		broadcastMessage.append(NET_DELIM);
-		broadcastMessage.append(to_string(s));
-		count++;
+		Append(to_string(s));
 	}
 
 	string SaveStringsForBroadcast() {
@@ -100,16 +100,6 @@ public:
 		}
 		return true;
 	}
-
-	/*void DelayString() {
-		int size = tokens.size();
-		incompleteMessage = NET_SIG;
-		incompleteMessage.append(NET_DELIM);
-		for (int i = beginPoint; i < size; i++) {
-			incompleteMessage.append(tokens[i]);
-			incompleteMessage.append(NET_DELIM);
-		}
-	}*/
 
 	void SetIteratorToEnd() {
 		iterator = endPoint;

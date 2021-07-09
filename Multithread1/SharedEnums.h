@@ -13,10 +13,19 @@ enum class LexCallback
     HashChanged,
     Disconnected,
     ModifyServerTime,
-    RoomInformationReceived
-    , Ping_Received
+    RoomInformationReceived,
+    Ping_Received,
+    ChatReceived,
+    DB_Received
 };
 enum class LexRequest
 {
-    None, RemoveRPC, ChangeMasterClient, Receive_modifiedTime,Ping
+    None, RemoveRPC, ChangeMasterClient, Receive_modifiedTime, Ping, DBReference
+};
+enum class LexDBcode {
+    LogIn, Set, Append, Get, SQL
+};
+enum class LexDBTable
+{
+    Statistics, Events, Achievements, Leaderboards
 };

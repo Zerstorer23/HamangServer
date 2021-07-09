@@ -1,7 +1,6 @@
 
 #pragma once
 #include "Values.h"
-
 class Player;
 class IOCP_Server;
 class NeworkMessage;

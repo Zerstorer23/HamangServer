@@ -7,10 +7,10 @@
 #include "PingManager.h"
 #include "MessageHandler.h"
 #include "HashTable.h"
+#include "DBManager.h"
 
 bool MessageHandler::CheckMessageComplete(NetworkMessage& netMessage)
 {
-
     if (EASY_LOG) netMessage.PrintOut();
     //2. 메세지 길이 읽기
     if (!netMessage.HasNext()) {
@@ -120,6 +120,9 @@ void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
         break;
     case LexRequest::Ping:
         Handle_ServerRequest_Ping(netMessage);
+        break;
+    case LexRequest::DBReference:
+        DBManager::GetInst()->HandleRequest(netMessage);
         break;
     }
 

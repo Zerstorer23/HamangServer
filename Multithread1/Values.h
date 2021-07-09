@@ -17,6 +17,7 @@
 #include <wchar.h>
 #include <locale>
 #include <locale.h>
+#include "sqlite3/sqlite3.h"
 
 using namespace std;
 using chrono::duration_cast;

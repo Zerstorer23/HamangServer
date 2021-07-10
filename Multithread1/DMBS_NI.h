@@ -1,14 +1,14 @@
-﻿// Connecting_with_SQLConnect.cpp  
+#pragma once
+// Connecting_with_SQLConnect.cpp  
 // compile with: user32.lib odbc32.lib  
 #include <windows.h>  
 #include <sqlext.h>  
 #include <mbstring.h>  
 #include <stdio.h>  
-#include <iostream>
 
 #define MAX_DATA 100  
 #define MYSQLSUCCESS(rc) ((rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) )  
-using namespace std;
+
 class direxec {
     RETCODE rc; // ODBC return code  
     HENV henv; // Environment     
@@ -16,8 +16,8 @@ class direxec {
     HSTMT hstmt; // Statement handle  
 
     unsigned char szData[MAX_DATA]; // Returned data storage  
-    SQLLEN cbData; // Output length of data  
-    SQLCHAR chr_ds_name[SQL_MAX_DSN_LENGTH]; // Data source name  
+    SDWORD cbData; // Output length of data  
+    unsigned char chr_ds_name[SQL_MAX_DSN_LENGTH]; // Data source name  
 
 public:
     direxec(); // Constructor  
@@ -30,18 +30,17 @@ public:
 // Constructor initializes the string chr_ds_name with the data source name.  
 // "Northwind" is an ODBC data source (odbcad32.exe) name whose default is the Northwind database  
 direxec::direxec() {
-    _mbscpy_s(chr_ds_name, SQL_MAX_DSN_LENGTH, (const unsigned char*)"asdf");
+    _mbscpy_s(chr_ds_name, SQL_MAX_DSN_LENGTH, (const unsigned char*)"Northwind");
 }
 
 // Allocate environment handle and connection handle, connect to data source, and allocate statement handle.  
 void direxec::sqlconn() {
     SQLAllocEnv(&henv);
     SQLAllocConnect(henv, &hdbc);
-    std::cout << "connect"<< chr_ds_name << endl;
     rc = SQLConnect(hdbc, chr_ds_name, SQL_NTS, NULL, 0, NULL, 0);
+
     // Deallocate handles, display error message, and exit.  
     if (!MYSQLSUCCESS(rc)) {
-        std::cout << "Fail connect" << endl;
         SQLFreeConnect(henv);
         SQLFreeEnv(henv);
         SQLFreeConnect(hdbc);
@@ -96,9 +95,10 @@ void direxec::error_out() {
     }
 }
 
-int main() {
+int OpenServer() {
     direxec x;   // Declare an instance of the direxec object.  
     x.sqlconn();   // Allocate handles, and connect.  
     x.sqlexec((UCHAR FAR*)"SELECT FirstName, LastName FROM employees");   // Execute SQL command  
-    x.sqldisconn();   // Free handles and disconnect  
+    x.sqldisconn();   // Free handles and disconnect 
+    return 1;
 }

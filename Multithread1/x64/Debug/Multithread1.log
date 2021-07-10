@@ -1,5 +1,11 @@
 ﻿  IOCP_Server.cpp
-C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\IOCP_Server.h(93,1): warning C4267: '초기화 중': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\IOCP_Server.cpp(181,34): warning C4267: '초기화 중': 'size_t'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\IOCP_Server.cpp(280,34): warning C4267: '초기화 중': 'size_t'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\IOCP_Server.h(74,1): warning C4267: '초기화 중': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\NetworkMessage.h(211,1): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\NetworkMessage.h(212,1): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\PlayerManager.h(33,1): warning C4267: 'return': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Player.cpp
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\NetworkMessage.h(211,1): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\NetworkMessage.h(212,1): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Lex\Documents\GitHub\HamangServer\Multithread1\IOCP_Server.h(74,1): warning C4267: '초기화 중': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  코드를 생성하고 있습니다...
   Multithread1.vcxproj -> C:\Users\Lex\Documents\GitHub\HamangServer\x64\Debug\Multithread1.exe

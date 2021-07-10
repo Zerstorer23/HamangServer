@@ -56,7 +56,7 @@ public:
     {
 
         int rc = sqlite3_open(databaseName.c_str(), &db);
-
+        
         if (rc != SQLITE_OK)
         {
             fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));

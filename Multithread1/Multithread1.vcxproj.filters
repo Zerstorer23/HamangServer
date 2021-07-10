@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PlayerManager.cpp">
-      <Filter>01 PlayerManager</Filter>
-    </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>01 PlayerManager</Filter>
     </ClCompile>
@@ -65,6 +62,12 @@
     </ClCompile>
     <ClCompile Include="sqlite3\sqlite3.c">
       <Filter>04 DB\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerManager.cpp">
+      <Filter>01 PlayerManager</Filter>
+    </ClCompile>
+    <ClCompile Include="DMBS_NI.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="sqlite3\sqlite3ext.h">
       <Filter>04 DB\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="DMBS_NI.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

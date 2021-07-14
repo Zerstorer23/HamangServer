@@ -40,8 +40,9 @@ int main()
     //}
     cout << u8"IP 주소 입력"s << endl;
     char iptemp[256];
-    cin >> iptemp;
-    string ip = iptemp;// "192.168.10.46";//"172.30.1.27";// "127.0.0.1";
+  //  cin >> iptemp;
+    string ip = "172.30.1.27";// "127.0.0.1";
+    //iptemp;
     string port = "9000";
     IOCP_Server * myServer =IOCP_Server::GetInst();
     PlayerManager* playerManager = PlayerManager::GetInst();

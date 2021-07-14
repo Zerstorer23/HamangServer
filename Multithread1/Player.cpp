@@ -20,7 +20,7 @@ void Player::SetActorNumber(int id)
 void Player::Send(string message, bool isInitial)
 {
 	if (!isConnected && !isInitial) return;
-//c	cout << "\t\t" << message.length() << u8"send Message :"s << message << " TO " << actorNumber << endl;
+	//cout << "\t\t" << message.length() << u8"send Message :"s << message << " TO " << actorNumber << endl;
 	//string u8message;
 	LPPER_IO_DATA cloneIO = IOCP_Server::GetInst()->CreateMessageBuffer(message, WRITE);
 	SOCKET targetSocket = handleInfo->clientSocket;

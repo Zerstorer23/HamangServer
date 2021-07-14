@@ -66,8 +66,8 @@ public:
 
 	void Append(string s)
 	{
-		broadcastMessage.append(NET_DELIM);
 		broadcastMessage.append(s);
+		broadcastMessage.append(NET_DELIM);
 		count++;
 	}
 	void Append(int s)
@@ -79,8 +79,8 @@ public:
 		//자신제외 방송용.
 		string message;
 		for (unsigned int i = beginPoint; i < endPoint; i++) {
-			message.append(NET_DELIM);
 			message.append(tokens[i]);
+			message.append(NET_DELIM);
 			count++;
 		}
 		broadcastMessage.append(message);
@@ -119,7 +119,7 @@ public:
 	}
 	string BuildNewSignedMessage() {
 		//서버에서 새로 생성된 메세지용
-		return NET_DELIM + NET_SIG+NET_DELIM+ to_string(count + 2).append(broadcastMessage);
+		return NET_SIG+NET_DELIM+ to_string(count + 2).append(NET_DELIM).append(broadcastMessage);
 	}
 	void PrintOut() {
 		int iter = beginPoint;

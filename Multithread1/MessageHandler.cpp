@@ -7,7 +7,7 @@
 #include "PingManager.h"
 #include "MessageHandler.h"
 #include "HashTable.h"
-#include "DBManager.h"
+#include "DBMS_NI.h"
 
 bool MessageHandler::CheckMessageComplete(NetworkMessage& netMessage)
 {
@@ -122,7 +122,7 @@ void MessageHandler::Handle_ServerRequest(NetworkMessage& netMessage)
         Handle_ServerRequest_Ping(netMessage);
         break;
     case LexRequest::DBReference:
-        DBManager::GetInst()->HandleRequest(netMessage);
+        DBMS_NI::GetInst()->HandleRequest(netMessage);
         break;
     }
 

@@ -54,9 +54,6 @@
     <ClCompile Include="HashTable.cpp">
       <Filter>02 Server</Filter>
     </ClCompile>
-    <ClCompile Include="DBManager.cpp">
-      <Filter>04 DB</Filter>
-    </ClCompile>
     <ClCompile Include="sqlite3\shell.c">
       <Filter>04 DB\SQLite</Filter>
     </ClCompile>
@@ -66,8 +63,11 @@
     <ClCompile Include="PlayerManager.cpp">
       <Filter>01 PlayerManager</Filter>
     </ClCompile>
-    <ClCompile Include="DMBS_NI.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="DBMS_NI.cpp">
+      <Filter>04 DB</Filter>
+    </ClCompile>
+    <ClCompile Include="DBManager.cpp">
+      <Filter>04 DB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,17 +104,17 @@
     <ClInclude Include="HashTable.h">
       <Filter>02 Server</Filter>
     </ClInclude>
-    <ClInclude Include="DBManager.h">
-      <Filter>04 DB</Filter>
-    </ClInclude>
     <ClInclude Include="sqlite3\sqlite3.h">
       <Filter>04 DB\SQLite</Filter>
     </ClInclude>
     <ClInclude Include="sqlite3\sqlite3ext.h">
       <Filter>04 DB\SQLite</Filter>
     </ClInclude>
-    <ClInclude Include="DMBS_NI.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="DBMS_NI.h">
+      <Filter>04 DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DBManager.h">
+      <Filter>04 DB</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,9 @@
 #include <locale>
 #include <locale.h>
 #include "sqlite3/sqlite3.h"
+#include <windows.h>  
+#include <sqlext.h>  
+#include <mbstring.h>  
 
 using namespace std;
 using chrono::duration_cast;

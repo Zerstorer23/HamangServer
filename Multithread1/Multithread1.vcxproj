@@ -144,8 +144,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BufferedMessages.cpp" />
-    <ClCompile Include="DBManager.cpp" />
-    <ClCompile Include="DMBS_NI.cpp" />
+    <ClCompile Include="DBManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="DBMS_NI.cpp" />
     <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="IOCP_Server.cpp" />
     <ClCompile Include="main.cpp" />
@@ -159,8 +164,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferedMessages.h" />
-    <ClInclude Include="DBManager.h" />
-    <ClInclude Include="DMBS_NI.h" />
+    <ClInclude Include="DBManager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="DBMS_NI.h" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="IOCP_Server.h" />
     <ClInclude Include="MessageHandler.h" />
